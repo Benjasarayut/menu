@@ -88,18 +88,22 @@
             { id: 4, name: "โรตีกล้วยหอม", price: 40 },
             { id: 5, name: "ชาไทยเย็น", price: 25 }
         ];
-        let cart = {}; // 🛒 ตะกร้าสินค้า (เก็บค่าไว้ตลอด จนกว่าจะกด goBack ที่เปลี่ยนประเภท)
+        let cart = {}; 
 
         async function main() {
             renderMenu(); 
             try {
-                await liff.init({ liffId: "YOUR_LIFF_ID_HERE" }); 
+                await liff.init({ liffId: "2008739684-1MCliiMk" }); 
+                
                 if (liff.isLoggedIn()) {
                     const profile = await liff.getProfile();
+                    document.getElementById("profile").style.display = "block"; 
                     document.getElementById("pictureUrl").src = profile.pictureUrl;
                     document.getElementById("displayName").innerText = "สวัสดีคุณ " + profile.displayName;
                 }
-            } catch (err) { console.log(err); }
+            } catch (err) { 
+                console.log("LIFF Init Error:", err); 
+            }
         }
         main();
 
@@ -111,12 +115,11 @@
             renderMenu(); 
         }
 
-        // ปุ่มย้อนกลับหน้าบนซ้าย (อันนี้จะล้างตะกร้า เพราะถือว่าเปลี่ยนใจไม่กินแล้ว)
         function goBack() {
             if(confirm("ต้องการเปลี่ยนประเภทการทาน? \n(รายการอาหารที่เลือกไว้จะถูกล้าง)")) {
                 document.getElementById("mainApp").style.display = "none";
                 document.getElementById("landingPage").style.display = "flex";
-                cart = {}; // ล้างตะกร้า
+                cart = {}; 
                 renderMenu();
                 calculateTotal();
             }
@@ -138,7 +141,6 @@
                     </div>
                 </div>
             `).join('');
-            // คืนค่าจำนวนเดิมที่เคยกดไว้
             for (let id in cart) {
                 if(cart[id] > 0) document.getElementById(`qty-${id}`).innerText = cart[id];
             }
@@ -161,34 +163,29 @@
             document.getElementById("btnCheckout").disabled = (count === 0);
         }
 
-        // --- 🟢 เปิดหน้าต่างสรุป (Logic แยกประเภท) ---
         function submitOrder() {
             document.getElementById("modalTotal").innerText = document.getElementById("totalAmount").innerText;
             
-            // ดึงชื่อจาก LINE มาใส่ (ถ้ามี)
-            const lineName = document.getElementById("displayName").innerText.replace("สวัสดีคุณ ", "");
-            if(lineName) document.getElementById("confirmName").value = lineName;
+            const displayNameEl = document.getElementById("displayName");
+            if(displayNameEl && displayNameEl.innerText) {
+                const lineName = displayNameEl.innerText.replace("สวัสดีคุณ ", "");
+                if(lineName) document.getElementById("confirmName").value = lineName;
+            }
 
             const infoSection = document.getElementById("customerInfoSection");
             const dineInMsg = document.getElementById("dineInMessage");
 
-            // 👇 เช็คเงื่อนไข ทานร้าน vs กลับบ้าน
             if (currentOrderType.includes("ทานที่ร้าน")) {
-                // ทานที่ร้าน: ซ่อนที่กรอกข้อมูลทั้งหมด โชว์แต่รายการ
                 infoSection.style.display = "none";
                 dineInMsg.style.display = "block";
-                
-                // ใส่ค่า Dummy กัน Error
                 document.getElementById("confirmPhone").value = "-";
                 document.getElementById("paymentMethod").value = "หน้าเคาน์เตอร์";
             } else {
-                // กลับบ้าน: โชว์ที่กรอกปกติ
                 infoSection.style.display = "block";
                 dineInMsg.style.display = "none";
                 document.getElementById("confirmPhone").value = ""; 
             }
 
-            // สร้างรายการอาหาร
             const listContainer = document.getElementById("orderSummaryList");
             listContainer.innerHTML = ""; 
             menuItems.forEach(item => {
@@ -203,8 +200,6 @@
             document.getElementById("checkoutModal").style.display = "flex";
         }
 
-        // --- ฟังก์ชันปิด Modal (แก้ไขรายการ) ---
-        // 💡 แค่ซ่อน Modal ไม่มีการล้างตัวแปร cart ดังนั้นของเดิมยังอยู่ครบ
         function closeModal() {
             document.getElementById("checkoutModal").style.display = "none";
         }
@@ -214,7 +209,6 @@
             let phone = document.getElementById("confirmPhone").value;
             const payment = document.getElementById("paymentMethod").value;
 
-            // Validation เฉพาะกลับบ้าน
             if (currentOrderType.includes("กลับบ้าน")) {
                 if (!phone || phone.length < 9) {
                     alert("⚠️ กรุณากรอกเบอร์โทรศัพท์ครับ");
@@ -232,9 +226,13 @@
             btn.disabled = true;
             
             try {
-                const response = await fetch('https://valene-unspitted-wirelessly.ngrok-free.app/api/order', {
+                // ✅ แก้ไข: เพิ่ม Headers ปลดล็อก ngrok warning แล้ว
+                const response = await fetch('https://valene-unspitted-wirelessly.ngrok-free.dev/api/order', {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'ngrok-skip-browser-warning': 'true' // <--- บรรทัดนี้สำคัญมาก!
+                    },
                     body: JSON.stringify({
                         name: name,
                         phone: phone,
@@ -249,7 +247,7 @@
 
                 if (response.ok) {
                     alert(`✅ สั่งเรียบร้อย!\n\n🔢 คิวของคุณคือ: ${result.queueNumber}`);
-                    location.reload(); 
+                    liff.closeWindow(); 
                 } else { throw new Error("Server Error"); }
             } catch (err) {
                 alert("เกิดข้อผิดพลาด: " + err);
