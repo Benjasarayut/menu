@@ -61,11 +61,8 @@
                     <option value="เงินสด">💵 เงินสด</option>
                 </select>
 
-                <label>👤 ชื่อผู้สั่ง:</label>
-                <input type="text" id="confirmName" class="input-box" placeholder="ระบุชื่อ">
-
                 <label style="color:red;">* 📞 เบอร์โทร (สำหรับติดต่อรับของ):</label>
-                <input type="tel" id="confirmPhone" class="input-box" placeholder="0xx-xxx-xxxx">
+                <input type="tel" id="confirmPhone" class="input-box" placeholder="กรอกเบอร์โทรศัพท์ 10 หลัก">
             </div>
 
             <div id="dineInMessage" style="display:none; text-align:center; color:#06C755; margin: 10px 0;">
@@ -93,6 +90,7 @@
         async function main() {
             renderMenu(); 
             try {
+                // ✅ LIFF ID เดิมของคุณ
                 await liff.init({ liffId: "2008739684-1MCliiMk" }); 
                 
                 if (liff.isLoggedIn()) {
@@ -166,12 +164,6 @@
         function submitOrder() {
             document.getElementById("modalTotal").innerText = document.getElementById("totalAmount").innerText;
             
-            const displayNameEl = document.getElementById("displayName");
-            if(displayNameEl && displayNameEl.innerText) {
-                const lineName = displayNameEl.innerText.replace("สวัสดีคุณ ", "");
-                if(lineName) document.getElementById("confirmName").value = lineName;
-            }
-
             const infoSection = document.getElementById("customerInfoSection");
             const dineInMsg = document.getElementById("dineInMessage");
 
@@ -205,10 +197,17 @@
         }
 
         async function sendFinalOrder() {
-            const name = document.getElementById("confirmName").value || "ลูกค้าหน้าร้าน";
+            // ✅ ระบบดึงชื่อจาก LINE มาให้เอง (ไม่ต้องกรอก)
+            let name = "ลูกค้า";
+            const displayNameEl = document.getElementById("displayName");
+            if(displayNameEl && displayNameEl.innerText) {
+                name = displayNameEl.innerText.replace("สวัสดีคุณ ", "");
+            }
+
             let phone = document.getElementById("confirmPhone").value;
             const payment = document.getElementById("paymentMethod").value;
 
+            // ✅ เช็คเบอร์โทร (เฉพาะกลับบ้าน)
             if (currentOrderType.includes("กลับบ้าน")) {
                 if (!phone || phone.length < 9) {
                     alert("⚠️ กรุณากรอกเบอร์โทรศัพท์ครับ");
@@ -226,15 +225,15 @@
             btn.disabled = true;
             
             try {
-                // ✅ แก้ไข: เพิ่ม Headers ปลดล็อก ngrok warning แล้ว
+                // ✅ URL เดิมของคุณที่ถูกต้องแล้ว (ngrok ที่แก้ header แล้ว)
                 const response = await fetch('https://valene-unspitted-wirelessly.ngrok-free.dev/api/order', {
                     method: 'POST',
                     headers: { 
                         'Content-Type': 'application/json',
-                        'ngrok-skip-browser-warning': 'true' // <--- บรรทัดนี้สำคัญมาก!
+                        'ngrok-skip-browser-warning': 'true'
                     },
                     body: JSON.stringify({
-                        name: name,
+                        name: name, // ส่งชื่อจาก LINE ไปหลังบ้าน
                         phone: phone,
                         payment: payment,
                         items: itemsText,
