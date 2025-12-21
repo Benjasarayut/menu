@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ร้านข้าวมันไก่และโรตี</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <div id="profile" class="profile-card" style="display:none;">
+            <img id="pictureUrl" src="" alt="Profile Picture">
+            <h2 id="displayName">กำลังโหลด...</h2>
+            <p id="statusMessage">ยินดีต้อนรับสู่ระบบจองคิว</p>
+        </div>
+
+        <div id="loading">กำลังเชื่อมต่อกับ LINE...</div>
+        <button id="btnOrder" class="btn-primary" style="display:none;">เริ่มสั่งอาหาร</button>
+    </div>
+
+    <script>
+        async function main() {
+            // ⚠️ สำคัญ: เปลี่ยน YOUR_LIFF_ID เป็น ID ที่ได้จากหน้า LINE Developers
+            const LIFF_ID = "2008739684-1MCIiiMk"; 
+
+            try {
+                await liff.init({ liffId: LIFF_ID });
+
+                if (!liff.isLoggedIn()) {
+                    liff.login(); // ถ้ายังไม่ล็อกอิน ให้เด้งไปหน้า Login
+                } else {
+                    // ดึงข้อมูลโปรไฟล์
+                    const profile = await liff.getProfile();
+                    
+                    // แสดงข้อมูลบนหน้าเว็บ
+                    document.getElementById("pictureUrl").src = profile.pictureUrl;
+                    document.getElementById("displayName").innerText = "คุณ " + profile.displayName;
+                    
+                    // ปิดตัวโหลด เปิดโชว์ข้อมูล
+                    document.getElementById("loading").style.display = "none";
+                    document.getElementById("profile").style.display = "block";
+                    document.getElementById("btnOrder").style.display = "block";
+                }
+            } catch (err) {
+                document.getElementById("loading").innerText = "เกิดข้อผิดพลาด: " + err;
+            }
+        }
+        main();
+    </script>
+</body>
+</html>
