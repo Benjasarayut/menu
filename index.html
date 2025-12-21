@@ -9,45 +9,254 @@
 </head>
 <body>
 
-    <div class="container">
-        <div id="profile" class="profile-card" style="display:none;">
-            <img id="pictureUrl" src="" alt="Profile Picture">
-            <h2 id="displayName">กำลังโหลด...</h2>
-            <p id="statusMessage">ยินดีต้อนรับสู่ระบบจองคิว</p>
+    <div id="landingPage" class="landing-container">
+        <div class="welcome-box">
+            <h1>ยินดีต้อนรับ 🙏</h1>
+            <p>ร้านข้าวมันไก่และโรตี</p>
+            <div class="landing-buttons">
+                <button class="btn-select btn-dine-in" onclick="selectType('ทานที่ร้าน 🍽️')">
+                    <span style="font-size: 24px;">🍽️</span> ทานที่ร้าน
+                </button>
+                <button class="btn-select btn-takeaway" onclick="selectType('กลับบ้าน 🛍️')">
+                    <span style="font-size: 24px;">🥡</span> สั่งกลับบ้าน
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div id="mainApp" style="display: none;">
+        <div class="header-bar">
+            <button onclick="goBack()" class="btn-back">⬅ เปลี่ยนประเภท</button>
+            <span id="orderTypeDisplay" class="badge">...</span>
         </div>
 
-        <div id="loading">กำลังเชื่อมต่อกับ LINE...</div>
-        <button id="btnOrder" class="btn-primary" style="display:none;">เริ่มสั่งอาหาร</button>
+        <div class="container">
+            <div id="profile" class="profile-section" style="display:none;">
+                <img id="pictureUrl" src="" alt="Profile">
+                <h3 id="displayName"></h3>
+            </div>
+            <div id="menuList" class="menu-grid"></div>
+        </div>
+
+        <div class="bottom-bar">
+            <div class="total-price">รวม: <span id="totalAmount">0</span> บาท</div>
+            <button id="btnCheckout" class="btn-checkout" onclick="submitOrder()" disabled>สรุปรายการ</button>
+        </div>
+    </div>
+
+    <div id="checkoutModal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h2>สรุปรายการสั่งซื้อ 📝</h2>
+            
+            <div id="orderSummaryList" class="summary-list"></div>
+
+            <hr style="border: 1px solid #eee; margin: 10px 0;">
+            
+            <p style="text-align: right;">ยอดรวมทั้งสิ้น: <span id="modalTotal" style="color:#06C755; font-weight:bold; font-size: 18px;">0</span> บาท</p>
+            
+            <div id="customerInfoSection">
+                <label>💳 วิธีชำระเงิน:</label>
+                <select id="paymentMethod" class="input-box">
+                    <option value="สแกนจ่าย/โอน">📲 สแกนจ่าย / โอน</option>
+                    <option value="เงินสด">💵 เงินสด</option>
+                </select>
+
+                <label>👤 ชื่อผู้สั่ง:</label>
+                <input type="text" id="confirmName" class="input-box" placeholder="ระบุชื่อ">
+
+                <label style="color:red;">* 📞 เบอร์โทร (สำหรับติดต่อรับของ):</label>
+                <input type="tel" id="confirmPhone" class="input-box" placeholder="0xx-xxx-xxxx">
+            </div>
+
+            <div id="dineInMessage" style="display:none; text-align:center; color:#06C755; margin: 10px 0;">
+                <p>✅ กดปุ่มยืนยันเพื่อรับบัตรคิวได้เลยครับ</p>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal()">⬅ แก้ไขรายการ</button>
+                <button class="btn-confirm" onclick="sendFinalOrder()">✅ ยืนยัน / รับคิว</button>
+            </div>
+        </div>
     </div>
 
     <script>
+        let currentOrderType = ""; 
+        const menuItems = [
+            { id: 1, name: "ข้าวมันไก่ต้ม", price: 50 },
+            { id: 2, name: "ข้าวมันไก่ทอด", price: 50 },
+            { id: 3, name: "ข้าวมันไก่ผสม", price: 60 },
+            { id: 4, name: "โรตีกล้วยหอม", price: 40 },
+            { id: 5, name: "ชาไทยเย็น", price: 25 }
+        ];
+        let cart = {}; // 🛒 ตะกร้าสินค้า (เก็บค่าไว้ตลอด จนกว่าจะกด goBack ที่เปลี่ยนประเภท)
+
         async function main() {
-            // ⚠️ สำคัญ: เปลี่ยน YOUR_LIFF_ID เป็น ID ที่ได้จากหน้า LINE Developers
-            const LIFF_ID = "2008739684-1MCIiiMk"; 
-
+            renderMenu(); 
             try {
-                await liff.init({ liffId: LIFF_ID });
-
-                if (!liff.isLoggedIn()) {
-                    liff.login(); // ถ้ายังไม่ล็อกอิน ให้เด้งไปหน้า Login
-                } else {
-                    // ดึงข้อมูลโปรไฟล์
+                await liff.init({ liffId: "YOUR_LIFF_ID_HERE" }); 
+                if (liff.isLoggedIn()) {
                     const profile = await liff.getProfile();
-                    
-                    // แสดงข้อมูลบนหน้าเว็บ
                     document.getElementById("pictureUrl").src = profile.pictureUrl;
-                    document.getElementById("displayName").innerText = "คุณ " + profile.displayName;
-                    
-                    // ปิดตัวโหลด เปิดโชว์ข้อมูล
-                    document.getElementById("loading").style.display = "none";
-                    document.getElementById("profile").style.display = "block";
-                    document.getElementById("btnOrder").style.display = "block";
+                    document.getElementById("displayName").innerText = "สวัสดีคุณ " + profile.displayName;
                 }
-            } catch (err) {
-                document.getElementById("loading").innerText = "เกิดข้อผิดพลาด: " + err;
-            }
+            } catch (err) { console.log(err); }
         }
         main();
+
+        function selectType(type) {
+            currentOrderType = type;
+            document.getElementById("landingPage").style.display = "none";
+            document.getElementById("mainApp").style.display = "block";
+            document.getElementById("orderTypeDisplay").innerText = type;
+            renderMenu(); 
+        }
+
+        // ปุ่มย้อนกลับหน้าบนซ้าย (อันนี้จะล้างตะกร้า เพราะถือว่าเปลี่ยนใจไม่กินแล้ว)
+        function goBack() {
+            if(confirm("ต้องการเปลี่ยนประเภทการทาน? \n(รายการอาหารที่เลือกไว้จะถูกล้าง)")) {
+                document.getElementById("mainApp").style.display = "none";
+                document.getElementById("landingPage").style.display = "flex";
+                cart = {}; // ล้างตะกร้า
+                renderMenu();
+                calculateTotal();
+            }
+        }
+
+        function renderMenu() {
+            const menuContainer = document.getElementById("menuList");
+            if (!menuContainer) return;
+            menuContainer.innerHTML = menuItems.map(item => `
+                <div class="menu-item">
+                    <div class="menu-info">
+                        <h3>${item.name}</h3>
+                        <div class="price">${item.price} บาท</div>
+                    </div>
+                    <div class="qty-controls">
+                        <button class="btn-qty" onclick="updateQty(${item.id}, -1)">-</button>
+                        <span class="qty-display" id="qty-${item.id}">0</span>
+                        <button class="btn-qty" onclick="updateQty(${item.id}, 1)">+</button>
+                    </div>
+                </div>
+            `).join('');
+            // คืนค่าจำนวนเดิมที่เคยกดไว้
+            for (let id in cart) {
+                if(cart[id] > 0) document.getElementById(`qty-${id}`).innerText = cart[id];
+            }
+        }
+
+        function updateQty(id, change) {
+            if (!cart[id]) cart[id] = 0;
+            cart[id] += change;
+            if (cart[id] < 0) cart[id] = 0;
+            document.getElementById(`qty-${id}`).innerText = cart[id];
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            let total = 0; let count = 0;
+            menuItems.forEach(item => {
+                if (cart[item.id]) { total += item.price * cart[item.id]; count += cart[item.id]; }
+            });
+            document.getElementById("totalAmount").innerText = total;
+            document.getElementById("btnCheckout").disabled = (count === 0);
+        }
+
+        // --- 🟢 เปิดหน้าต่างสรุป (Logic แยกประเภท) ---
+        function submitOrder() {
+            document.getElementById("modalTotal").innerText = document.getElementById("totalAmount").innerText;
+            
+            // ดึงชื่อจาก LINE มาใส่ (ถ้ามี)
+            const lineName = document.getElementById("displayName").innerText.replace("สวัสดีคุณ ", "");
+            if(lineName) document.getElementById("confirmName").value = lineName;
+
+            const infoSection = document.getElementById("customerInfoSection");
+            const dineInMsg = document.getElementById("dineInMessage");
+
+            // 👇 เช็คเงื่อนไข ทานร้าน vs กลับบ้าน
+            if (currentOrderType.includes("ทานที่ร้าน")) {
+                // ทานที่ร้าน: ซ่อนที่กรอกข้อมูลทั้งหมด โชว์แต่รายการ
+                infoSection.style.display = "none";
+                dineInMsg.style.display = "block";
+                
+                // ใส่ค่า Dummy กัน Error
+                document.getElementById("confirmPhone").value = "-";
+                document.getElementById("paymentMethod").value = "หน้าเคาน์เตอร์";
+            } else {
+                // กลับบ้าน: โชว์ที่กรอกปกติ
+                infoSection.style.display = "block";
+                dineInMsg.style.display = "none";
+                document.getElementById("confirmPhone").value = ""; 
+            }
+
+            // สร้างรายการอาหาร
+            const listContainer = document.getElementById("orderSummaryList");
+            listContainer.innerHTML = ""; 
+            menuItems.forEach(item => {
+                if (cart[item.id] > 0) {
+                    const row = document.createElement("div");
+                    row.className = "summary-item";
+                    row.innerHTML = `<span>${item.name} x ${cart[item.id]}</span><span>${item.price * cart[item.id]} บ.</span>`;
+                    listContainer.appendChild(row);
+                }
+            });
+
+            document.getElementById("checkoutModal").style.display = "flex";
+        }
+
+        // --- ฟังก์ชันปิด Modal (แก้ไขรายการ) ---
+        // 💡 แค่ซ่อน Modal ไม่มีการล้างตัวแปร cart ดังนั้นของเดิมยังอยู่ครบ
+        function closeModal() {
+            document.getElementById("checkoutModal").style.display = "none";
+        }
+
+        async function sendFinalOrder() {
+            const name = document.getElementById("confirmName").value || "ลูกค้าหน้าร้าน";
+            let phone = document.getElementById("confirmPhone").value;
+            const payment = document.getElementById("paymentMethod").value;
+
+            // Validation เฉพาะกลับบ้าน
+            if (currentOrderType.includes("กลับบ้าน")) {
+                if (!phone || phone.length < 9) {
+                    alert("⚠️ กรุณากรอกเบอร์โทรศัพท์ครับ");
+                    return;
+                }
+            }
+
+            let itemsText = "";
+            menuItems.forEach(item => {
+                if (cart[item.id] > 0) itemsText += `- ${item.name} x ${cart[item.id]}\n`;
+            });
+
+            const btn = document.querySelector(".btn-confirm");
+            btn.innerText = "กำลังรับคิว...";
+            btn.disabled = true;
+            
+            try {
+                const response = await fetch('http://localhost:3000/api/order', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        name: name,
+                        phone: phone,
+                        payment: payment,
+                        items: itemsText,
+                        total: document.getElementById("totalAmount").innerText,
+                        type: currentOrderType
+                    })
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                    alert(`✅ สั่งเรียบร้อย!\n\n🔢 คิวของคุณคือ: ${result.queueNumber}`);
+                    location.reload(); 
+                } else { throw new Error("Server Error"); }
+            } catch (err) {
+                alert("เกิดข้อผิดพลาด: " + err);
+                btn.innerText = "ยืนยัน / รับคิว";
+                btn.disabled = false;
+            }
+        }
     </script>
 </body>
 </html>
