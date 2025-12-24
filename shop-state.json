@@ -1,5 +1,7 @@
 {
   "isMaintenance": false,
   "isManualClosed": false,
-  "soldOutItems": []
+  "soldOutItems": [
+    1
+  ]
 }

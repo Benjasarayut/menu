@@ -8,6 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        /* ⚠️ ซ่อนปุ่ม Admin ไว้ก่อน (JS จะสั่งเปิดเองถ้า ID ตรง) */
+        .admin-btn-float { display: none !important; }
+    </style>
 </head>
 <body>
 
@@ -140,44 +144,29 @@
             { id: 5, name: "ชาไทยเย็น", price: 25 }
         ];
         let cart = {}; 
-        
-        // ⚠️ สร้าง User Profile เริ่มต้นไว้เลย (กันเหนียว)
-        let userProfile = { 
-            userId: 'Uaee9c1eebc0f49f0190de36b4e3d0bdb', // ไอดีคุณเบน
-            displayName: 'Guest' 
-        };
-        
+        let userProfile = null;
         let serverState = {};   
+        let lastStateJSON = ""; // ✅ ตัวช่วยจำค่าล่าสุด (ป้องกันการรีเฟรชหน้าจอมั่วๆ)
 
         async function main() {
-            // 1. ถ้าเปิดในคอม (localhost) ให้เป็น Admin ทันที โดยไม่ต้องรอ LIFF
-            const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+            await fetchShopStatus(); // โหลดครั้งแรกทันที
             
-            if (isLocalhost) {
-                console.log("💻 ตรวจพบ Localhost -> เปิดโหมด Admin อัตโนมัติ");
-                userProfile.displayName = "Admin Mode (PC)";
-                checkUserRole(); // สั่งโชว์ปุ่มทันที
-            }
+            // ✅ เริ่มระบบ Real-time (เช็คทุก 3 วินาที)
+            setInterval(() => {
+                fetchShopStatus();
+            }, 3000);
 
-            await fetchShopStatus(); 
-            renderMenu(); 
-            
             try {
                 await liff.init({ liffId: "2008739684-1MCliiMk" }); 
+                
                 if (liff.isLoggedIn()) {
                     userProfile = await liff.getProfile(); 
                     document.getElementById("profile").style.display = "block"; 
                     document.getElementById("pictureUrl").src = userProfile.pictureUrl;
                     document.getElementById("displayName").innerText = "สวัสดีคุณ " + userProfile.displayName;
-                    
-                    // เช็คสิทธิ์อีกรอบ (เผื่อเป็น User จริงที่ไม่ใช่ Admin)
                     checkUserRole(); 
                 }
-            } catch (err) { 
-                console.log("LIFF Error:", err);
-                // ถ้า LIFF พัง แต่เปิดในคอม ก็ยังเป็น Admin ต่อไป
-                if(isLocalhost) checkUserRole();
-            }
+            } catch (err) { console.log("LIFF Error:", err); }
         }
         main();
 
@@ -185,31 +174,42 @@
             if (!userProfile) return;
             const myId = userProfile.userId;
 
+            // ⚠️⚠️ กำหนด ID Admin ตรงนี้
             const ADMIN_IDS = ['Uaee9c1eebc0f49f0190de36b4e3d0bdb']; 
-            const STAFF_IDS = ['Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx']; 
+            const STAFF_IDS = []; 
 
-            // ถ้า ID ตรง หรืออยู่ในโหมด Localhost ให้โชว์ปุ่ม
-            const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
-
-            if (ADMIN_IDS.includes(myId) || isLocalhost) {
+            if (ADMIN_IDS.includes(myId)) {
                 document.getElementById("btnOpenAdmin").style.display = "flex";
+                document.getElementById("btnOpenAdmin").style.setProperty('display', 'flex', 'important');
                 document.getElementById("adminZone").style.display = "block"; 
             } else if (STAFF_IDS.includes(myId)) {
                 document.getElementById("btnOpenAdmin").style.display = "flex";
+                document.getElementById("btnOpenAdmin").style.setProperty('display', 'flex', 'important');
             }
         }
 
-        // --- ส่วนที่เหลือเหมือนเดิม ---
+        // --- ✅ ระบบ Real-time แบบฉลาด (ไม่กระตุก) ---
         async function fetchShopStatus() {
             try {
-                // ✅ ใช้ URL Ngrok (ถ้าใช้ Local ให้แก้เป็น http://localhost:3000/api/status)
+                // ⚠️ แก้ URL Ngrok ของคุณที่นี่
                 const response = await fetch('https://valene-unspitted-wirelessly.ngrok-free.dev/api/status', {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const data = await response.json();
-                serverState = data;
-                applyServerState(); 
-            } catch (err) { console.error("Load status error", err); }
+                
+                // ✅ เช็คก่อนอัปเดต: ถ้าข้อมูลเหมือนเดิมเป๊ะๆ ไม่ต้องทำอะไร (กันหน้าจอกระตุก)
+                const currentJSON = JSON.stringify(data);
+                if (currentJSON !== lastStateJSON) {
+                    // ข้อมูลเปลี่ยน! อัปเดตหน้าจอเดี๋ยวนี้
+                    console.log("🔄 พบการเปลี่ยนแปลง! อัปเดตหน้าจอ...");
+                    serverState = data;
+                    lastStateJSON = currentJSON;
+                    applyServerState(); 
+                }
+
+            } catch (err) { 
+                // ถ้าเน็ตหลุดเงียบๆ ไม่ต้องโวยวาย console.error("Update failed", err); 
+            }
         }
 
         function applyServerState() {
@@ -224,15 +224,21 @@
                 document.getElementById("maintenanceMessage").style.display = "none";
             }
 
-            renderMenu(); 
-            document.getElementById("toggleMaintenance").checked = serverState.isMaintenance;
-            document.getElementById("toggleShop").checked = serverState.isManualClosed;
-            renderAdminMenuList(); 
+            renderMenu(); // อัปเดตเมนู (อันไหนหมดจะหายไปเอง)
+            
+            // อัปเดตปุ่มสวิตช์ในหน้า Admin (ถ้าเปิดไว้อยู่)
+            if(document.getElementById("adminModal").style.display === "flex") {
+                 document.getElementById("toggleMaintenance").checked = serverState.isMaintenance;
+                 document.getElementById("toggleShop").checked = serverState.isManualClosed;
+                 renderAdminMenuList(); 
+            }
+            
             checkShopStatusOnLoad(); 
         }
         
         function isAdminOrStaff() {
-            return document.getElementById("btnOpenAdmin").style.display === "flex";
+            const btn = document.getElementById("btnOpenAdmin");
+            return window.getComputedStyle(btn).display === "flex";
         }
 
         async function updateSystemStatus(action, value, itemId = null) {
@@ -251,13 +257,15 @@
                 });
                 const res = await response.json();
                 if (res.status === 'success') {
+                    // อัปเดตทันทีเพื่อให้คนกดรู้สึกว่าเร็ว (ไม่ต้องรอ 3 วิ)
                     serverState = res.newState;
+                    lastStateJSON = JSON.stringify(serverState); // อัปเดตความจำด้วย
                     applyServerState();
                 } else {
                     alert("❌ " + res.message);
                     fetchShopStatus(); 
                 }
-            } catch (err) { alert("Server Error: เช็คว่าเปิด node server.js หรือยัง?"); }
+            } catch (err) { alert("Server Error"); }
         }
 
         function renderMenu() {
@@ -298,6 +306,7 @@
             const container = document.getElementById("adminMenuList");
             const soldOutIds = serverState.soldOutItems || [];
             
+            // ในหน้า Admin ต้องโชว์ครบ เพื่อให้กดเปิดคืนได้
             container.innerHTML = menuItems.map(item => {
                 const isSoldOut = soldOutIds.includes(item.id);
                 return `
@@ -309,11 +318,6 @@
                     </label>
                 </div>
             `}).join('');
-        }
-
-        function openAdminModal() {
-            document.getElementById("adminModal").style.display = "flex";
-            renderAdminMenuList();
         }
 
         function checkExistingQueue() {
@@ -355,7 +359,7 @@
             const hour = now.getHours();
             const minute = now.getMinutes();
 
-            if (false) { 
+            if (false ) { 
                 document.getElementById("landingButtons").style.display = "none"; 
                 document.getElementById("shopClosedMessage").style.display = "block";
                 document.querySelector("#shopClosedMessage h2").innerText = "ร้านยังไม่เปิดรับออเดอร์"; 
