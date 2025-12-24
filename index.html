@@ -4,11 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ร้านข้าวมันไก่และโรตี</title>
-    
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="style.css">
-    
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
@@ -35,7 +32,6 @@
                 <span class="closed-icon">⛔</span>
                 <h2 style="margin:0; font-size:20px;">ร้านยังไม่เปิดรับออเดอร์</h2>
                 <p style="font-weight: bold; font-size: 16px; margin: 10px 0; color:#cc0000;">(เปิด 19.00 - 00.00 น.)</p>
-                
                 <div id="lateNightContent" style="display: none;">
                     <hr style="border: 1px dashed #ff9999; margin: 15px 0;">
                     <p class="closed-time" style="font-size: 14px;">
@@ -45,6 +41,21 @@
                     </p>
                 </div>
             </div>
+
+            <div id="activeQueueSection" style="display: none; text-align: center; animation: fadeIn 0.5s;">
+                <hr style="border: 1px solid #eee; margin: 20px 0;">
+                <div style="font-size: 50px;">🎫</div>
+                <h2 style="color: #333; margin: 10px 0;">คิวของคุณ</h2>
+                <div style="font-size: 80px; font-weight: bold; color: #06C755; line-height: 1; margin-bottom: 10px;">
+                    <span id="displayQueueNumber">--</span>
+                </div>
+                <p style="color: #666; font-size: 14px;">กรุณารอเรียกคิวที่หน้าร้านนะครับ</p>
+                
+                <button onclick="clearQueue()" style="background: #eee; border: none; padding: 10px 25px; border-radius: 20px; cursor: pointer; color: #888; font-weight: bold; margin-top: 20px; font-size: 14px;">
+                    🔄 สั่งรายการใหม่ / ล้างคิวเดิม
+                </button>
+            </div>
+
         </div>
     </div>
 
@@ -110,28 +121,68 @@
         ];
         let cart = {}; 
 
-        // ✅ ฟังก์ชันเช็คเวลา (Logic เดิมที่ถูกต้อง)
+        // ✅ ฟังก์ชันเช็คว่ามีคิวค้างอยู่ไหม? (ทำงานก่อนเช็คเวลา)
+        function checkExistingQueue() {
+            const savedQueue = localStorage.getItem('myDailyQueue');
+            if (savedQueue) {
+                const data = JSON.parse(savedQueue);
+                const today = new Date().toDateString(); // วันที่ปัจจุบัน (เช่น "Wed Dec 24 2025")
+
+                // ถ้าวันที่ตรงกับวันนี้ แสดงว่าคิวยังไม่หมดอายุ
+                if (data.date === today) {
+                    // ซ่อนปุ่มสั่ง และซ่อนป้ายร้านปิด
+                    document.getElementById("landingButtons").style.display = "none";
+                    document.getElementById("shopClosedMessage").style.display = "none";
+                    
+                    // โชว์เลขคิวแทน
+                    document.getElementById("activeQueueSection").style.display = "block";
+                    document.getElementById("displayQueueNumber").innerText = data.number;
+                    return true; // บอกว่า "มีคิวอยู่นะ"
+                }
+            }
+            return false; // ไม่มีคิว
+        }
+
+        // ✅ ฟังก์ชันเคลียร์คิว (เผื่อลูกค้าอยากสั่งใหม่)
+        function clearQueue() {
+            if(confirm("ต้องการสั่งรายการใหม่ใช่ไหมครับ?")) {
+                localStorage.removeItem('myDailyQueue'); // ลบข้อมูลคิวออกจากเครื่อง
+                location.reload(); // รีเฟรชหน้าเว็บ
+            }
+        }
+
+        // ฟังก์ชันเช็คเวลา (Logic เดิม)
         function checkShopStatusOnLoad() {
+            // ⚠️ เช็คคิวก่อน! ถ้ามีคิวค้างอยู่ ไม่ต้องสนเวลาเปิด-ปิด
+            const hasQueue = checkExistingQueue();
+            if (hasQueue) return; 
+
+            // ถ้าไม่มีคิว ค่อยเช็คเวลาตามปกติ
             const now = new Date();
             const hour = now.getHours();
             const minute = now.getMinutes();
 
-            if (hour < 19) { // ปิดก่อน 1 ทุ่ม
-                document.getElementById("landingButtons").style.display = "flex";
-                document.getElementById("shopClosedMessage").style.display = "none";
+            if (hour < 99) { // ปิดก่อน 1 ทุ่ม
+                document.getElementById("landingButtons").style.display = "none"; // เปลี่ยนเป็น none ถ้าปิด
+                // document.getElementById("landingButtons").style.display = "flex"; // 🔓 ปลดล็อคเทส (ถ้าจะเทสให้เปิดบรรทัดนี้)
+                
+                document.getElementById("shopClosedMessage").style.display = "block";
+                // document.getElementById("shopClosedMessage").style.display = "none"; // 🔓 ปลดล็อคเทส
 
-                // เงื่อนไขพิเศษ: 00.00 - 01.30
                 if (hour === 0 || (hour === 1 && minute <= 30)) {
-                    document.getElementById("lateNightContent").style.display = "none";
+                    document.getElementById("lateNightContent").style.display = "block";
                 } else {
                     document.getElementById("lateNightContent").style.display = "none";
                 }
                 return;
+            } else {
+                 // เปิดร้านปกติ
+                 document.getElementById("landingButtons").style.display = "flex";
+                 document.getElementById("shopClosedMessage").style.display = "none";
             }
 
-            // เตือนใกล้ปิด (23.30 - 23.59)
             if (hour === 23 && minute >= 30) {
-                alert(`⚠️ แจ้งเตือนใกล้ปิดระบบ!\n\nร้านจะปิดรับ "ออเดอร์ออนไลน์" เวลา 00.00 น. ครับ\n(เหลือเวลาอีก ${60 - minute} นาที)\n\n*ลูกค้ายังสามารถเดินทางมาสั่งที่หน้าร้านได้ถึง 01.30 น. ครับ`);
+                alert(`⚠️ แจ้งเตือนใกล้ปิดระบบ!\n\nร้านจะปิดรับ "ออเดอร์ออนไลน์" เวลา 00.00 น. ครับ`);
             }
         }
 
@@ -159,7 +210,6 @@
         }
 
         function goBack() {
-            // ไม่ต้องถาม confirm ถ้ายังไม่ได้เลือกอะไร
             let totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
             if(totalItems > 0) {
                 if(!confirm("ต้องการกลับหน้าแรก? \n(รายการอาหารที่เลือกไว้จะถูกล้าง)")) return;
@@ -169,6 +219,7 @@
             cart = {}; 
             renderMenu();
             calculateTotal();
+            checkShopStatusOnLoad(); // เช็คสถานะใหม่อีกรอบ
         }
 
         function renderMenu() {
@@ -211,8 +262,8 @@
 
         function submitOrder() {
             document.getElementById("modalTotal").innerText = document.getElementById("totalAmount").innerText;
-            document.getElementById("serverMessage").style.display = "none"; // Reset ข้อความ error
-            document.getElementById("btnConfirmOrder").style.display = "inline-block"; // Reset ปุ่ม
+            document.getElementById("serverMessage").style.display = "none"; 
+            document.getElementById("btnConfirmOrder").style.display = "inline-block"; 
             document.getElementById("btnConfirmOrder").innerText = "✅ ยืนยัน / รับคิว";
             document.getElementById("btnConfirmOrder").disabled = false;
 
@@ -295,15 +346,20 @@
                 const result = await response.json();
 
                 if (result.status === 'closed') {
-                    // แสดงข้อความในหน้า Modal (ไม่ใช้ alert)
                     const msgBox = document.getElementById("serverMessage");
                     msgBox.innerText = result.message;
                     msgBox.style.display = "block";
-                    btn.style.display = "none"; // ซ่อนปุ่มไปเลย
+                    btn.style.display = "none"; 
                     return; 
                 }
 
                 if (response.ok) {
+                    // ✅ บันทึกคิวลงเครื่องลูกค้า (Local Storage)
+                    localStorage.setItem('myDailyQueue', JSON.stringify({
+                        number: result.queueNumber,
+                        date: new Date().toDateString() // บันทึกวันที่ด้วย (ถ้าข้ามวันคิวจะหายเอง)
+                    }));
+
                     alert(`✅ สั่งเรียบร้อย!\n\n🔢 คิวของคุณคือ: ${result.queueNumber}`);
                     liff.closeWindow(); 
                 } else { throw new Error("Server Error"); }
