@@ -4,89 +4,158 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Customer Portal</title>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #d32f2f; --bg: #fff5f5; --card: #ffffff; --text: #333; }
-        body { font-family: 'Prompt', sans-serif; background-color: var(--bg); margin: 0; display: flex; justify-content: center; min-height: 100vh; }
-        
-        .main-card { width: 100%; max-width: 480px; background: var(--card); box-shadow: 0 10px 30px rgba(0,0,0,0.1); min-height: 100vh; display: flex; flex-direction: column; }
-        
-        /* Header สวยๆ */
-        .header { background: var(--primary); color: white; padding: 25px 20px; text-align: center; border-radius: 0 0 20px 20px; box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3); }
-        .header h1 { margin: 0; font-size: 22px; font-weight: 600; }
-        .header p { margin: 5px 0 0; font-size: 14px; opacity: 0.9; }
+        :root { --bg-gradient: linear-gradient(135deg, #fff5e6 0%, #fff0f0 100%); --red: #d32f2f; --gold: #ffc107; --blue: #0288d1; --text: #333; }
+        body { font-family: 'Prompt', sans-serif; background: var(--bg-gradient); margin: 0; min-height: 100vh; display: flex; flex-direction: column; align-items: center; }
 
-        /* ส่วนเลือกโต๊ะ */
-        .content { padding: 20px; flex-grow: 1; }
-        .section-title { font-size: 18px; font-weight: 600; margin-bottom: 15px; color: var(--text); border-left: 4px solid var(--primary); padding-left: 10px; }
-        
-        .table-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-        .btn-table { 
-            background: white; border: 2px solid #eee; border-radius: 12px; padding: 15px 0; 
-            font-size: 18px; font-weight: 600; color: #555; cursor: pointer; transition: 0.2s;
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        /* --- 1. ส่วนหน้าแรก (เลียนแบบ Kopihub) --- */
+        #welcomePage { width: 100%; max-width: 800px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 100vh; animation: fadeIn 0.8s; }
+
+        /* ป้ายชื่อร้าน (แดง-ทอง) */
+        .brand-box {
+            background: linear-gradient(180deg, #d32f2f 0%, #b71c1c 100%);
+            padding: 15px 40px; border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(211, 47, 47, 0.4), inset 0 2px 0 rgba(255,255,255,0.2);
+            border: 2px solid var(--gold); text-align: center; margin-bottom: 10px; position: relative;
         }
-        .btn-table span { font-size: 10px; font-weight: normal; color: #999; margin-top: 5px; }
-        .btn-table:hover { border-color: var(--primary); color: var(--primary); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .btn-table:active { background: var(--primary); color: white; border-color: var(--primary); }
-        .btn-table:active span { color: rgba(255,255,255,0.8); }
-
-        /* รายการอาหาร */
-        .menu-list { display: flex; flex-direction: column; gap: 15px; }
-        .menu-item { display: flex; justify-content: space-between; align-items: center; padding: 15px; border: 1px solid #f0f0f0; border-radius: 12px; background: white; }
-        .menu-info h3 { margin: 0; font-size: 16px; color: #333; }
-        .price { color: var(--primary); font-weight: bold; margin-top: 5px; }
+        .brand-box h1 { margin: 0; color: var(--gold); font-size: 24px; text-shadow: 0 2px 4px rgba(0,0,0,0.3); letter-spacing: 1px; }
+        .brand-box p { margin: 5px 0 0; color: rgba(255,255,255,0.9); font-size: 14px; }
         
-        .qty-box { display: flex; align-items: center; background: #f9f9f9; border-radius: 20px; padding: 2px; }
-        .btn-qty { width: 30px; height: 30px; border: none; background: white; border-radius: 50%; box-shadow: 0 2px 5px rgba(0,0,0,0.1); cursor: pointer; color: var(--primary); font-weight: bold; }
-        .qty-num { width: 30px; text-align: center; font-weight: bold; font-size: 14px; }
+        .welcome-text { color: #8d6e63; font-size: 16px; margin-bottom: 30px; }
 
-        /* ปุ่มสั่งซื้อด้านล่าง */
-        .bottom-bar { position: sticky; bottom: 0; background: white; padding: 15px 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); border-radius: 20px 20px 0 0; }
-        .btn-checkout { width: 100%; background: var(--primary); color: white; border: none; padding: 15px; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 5px 15px rgba(211, 47, 47, 0.4); opacity: 0.5; pointer-events: none; transition: 0.3s; }
-        .btn-checkout.active { opacity: 1; pointer-events: all; }
+        /* การ์ดเลือก (2 ใบ) */
+        .card-container { display: flex; gap: 20px; width: 100%; justify-content: center; flex-wrap: wrap; }
+        
+        .selection-card {
+            flex: 1; min-width: 280px; max-width: 320px;
+            background: white; border-radius: 20px; padding: 30px 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.08);
+            text-align: center; transition: transform 0.3s, box-shadow 0.3s;
+            position: relative; overflow: hidden; border-top: 5px solid transparent;
+            cursor: pointer;
+        }
+        .selection-card:hover { transform: translateY(-5px); box-shadow: 0 20px 40px rgba(0,0,0,0.12); }
+        .selection-card:active { transform: scale(0.98); }
+
+        /* การ์ดสีฟ้า (ทานที่ร้าน) */
+        .card-dinein { border-top-color: var(--blue); }
+        .card-dinein .icon-circle { background: #e1f5fe; color: var(--blue); }
+        .card-dinein .btn-action { background: var(--blue); box-shadow: 0 4px 15px rgba(2, 136, 209, 0.3); }
+
+        /* การ์ดสีแดง (กลับบ้าน) */
+        .card-takeaway { border-top-color: var(--red); }
+        .card-takeaway .icon-circle { background: #ffebee; color: var(--red); }
+        .card-takeaway .btn-action { background: var(--red); box-shadow: 0 4px 15px rgba(211, 47, 47, 0.3); }
+
+        .icon-circle { width: 70px; height: 70px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 32px; margin: 0 auto 20px; }
+        .card-title { font-size: 20px; font-weight: bold; color: #333; margin-bottom: 5px; }
+        .card-desc { font-size: 14px; color: #777; margin-bottom: 25px; line-height: 1.5; }
+        .btn-action { color: white; border: none; padding: 12px 30px; border-radius: 50px; font-size: 16px; font-weight: 600; width: 80%; cursor: pointer; }
+
+        /* --- 2. ส่วนเลือกโต๊ะ (Table Grid) --- */
+        #tablePage, #menuPage { display: none; width: 100%; max-width: 480px; padding: 20px; box-sizing: border-box; animation: slideUp 0.5s; }
+        
+        .section-header { margin-bottom: 20px; text-align: center; }
+        .section-header h2 { font-size: 22px; color: #333; margin: 0; }
+        .section-header p { color: #666; font-size: 14px; }
+
+        .table-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 15px; }
+        .btn-table {
+            aspect-ratio: 1/1; background: white; border: 2px solid #eee; border-radius: 15px;
+            font-size: 24px; font-weight: bold; color: #555; cursor: pointer;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.05); transition: 0.2s;
+        }
+        .btn-table span { font-size: 12px; font-weight: normal; color: #aaa; margin-top: 5px; }
+        .btn-table:active { border-color: var(--blue); color: var(--blue); background: #e3f2fd; transform: scale(0.95); }
+
+        /* --- 3. ส่วนเมนูอาหาร --- */
+        .menu-list { display: flex; flex-direction: column; gap: 12px; padding-bottom: 80px; }
+        .menu-item { background: white; padding: 15px; border-radius: 15px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .qty-control { display: flex; align-items: center; gap: 10px; }
+        .btn-qty { width: 28px; height: 28px; border-radius: 50%; border: 1px solid #ddd; background: white; font-weight: bold; cursor: pointer; }
+        
+        .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: white; padding: 15px 20px; box-shadow: 0 -5px 20px rgba(0,0,0,0.05); display: flex; justify-content: space-between; align-items: center; box-sizing: border-box; }
+        .btn-confirm { background: var(--gold); color: #333; border: none; padding: 12px 25px; border-radius: 10px; font-weight: bold; font-size: 16px; box-shadow: 0 4px 10px rgba(255, 193, 7, 0.4); cursor: pointer; }
+        .btn-confirm:disabled { background: #eee; color: #aaa; box-shadow: none; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body>
 
-    <div id="pageTable" class="main-card">
-        <div class="header">
-            <h1>ร้านข้าวมันไก่และโรตี 🍗</h1>
-            <p>ยินดีต้อนรับสู่ Customer Portal</p>
+    <div id="welcomePage">
+        <div class="brand-box">
+            <h1>ร้านข้าวมันไก่และโรตี</h1>
+            <p>Welcome! Please select service</p>
         </div>
-        <div class="content">
-            <div class="section-title">กรุณาเลือกเบอร์โต๊ะ</div>
-            <div class="table-grid">
-                <button class="btn-table" onclick="selectTable(1)">01<span>ว่าง</span></button>
-                <button class="btn-table" onclick="selectTable(2)">02<span>ว่าง</span></button>
-                <button class="btn-table" onclick="selectTable(3)">03<span>ว่าง</span></button>
-                <button class="btn-table" onclick="selectTable(4)">04<span>ว่าง</span></button>
-                <button class="btn-table" onclick="selectTable(5)">05<span>ว่าง</span></button>
-                <button class="btn-table" onclick="selectTable(6)">06<span>ว่าง</span></button>
-                <button class="btn-table" onclick="selectTable(7)">07<span>ว่าง</span></button>
-                <button class="btn-table" onclick="selectTable(8)">08<span>ว่าง</span></button>
+        <p class="welcome-text">ยินดีต้อนรับครับ กรุณาเลือกรายการด้านล่าง</p>
+
+        <div class="card-container">
+            <div class="selection-card card-dinein" onclick="showTableSelection()">
+                <div class="icon-circle">🍽️</div>
+                <div class="card-title">Customer Portal</div>
+                <div class="card-desc">
+                    สำหรับลูกค้าทานที่ร้าน<br>
+                    • เลือกโต๊ะที่นั่ง<br>
+                    • สั่งอาหารผ่านมือถือ<br>
+                    • เช็คสถานะคิว
+                </div>
+                <button class="btn-action">ทานที่ร้าน (Dine-in)</button>
+            </div>
+
+            <div class="selection-card card-takeaway" onclick="selectTakeaway()">
+                <div class="icon-circle">🥡</div>
+                <div class="card-title">Takeaway</div>
+                <div class="card-desc">
+                    สำหรับสั่งกลับบ้าน<br>
+                    • สั่งล่วงหน้า<br>
+                    • ไม่ต้องรอคิวโต๊ะ<br>
+                    • รับอาหารที่เคาน์เตอร์
+                </div>
+                <button class="btn-action">สั่งกลับบ้าน</button>
             </div>
         </div>
     </div>
 
-    <div id="pageMenu" class="main-card" style="display: none;">
-        <div class="header" style="display:flex; justify-content: space-between; align-items: center; padding: 15px 20px;">
-            <div onclick="location.reload()" style="cursor:pointer; font-size:20px;">⬅</div>
+    <div id="tablePage">
+        <button onclick="location.reload()" style="background:none; border:none; font-size:16px; color:#555; margin-bottom:10px;">⬅ ย้อนกลับ</button>
+        <div class="section-header">
+            <h2>เลือกเบอร์โต๊ะ</h2>
+            <p>Table Selection</p>
+        </div>
+        <div class="table-grid">
+            <button class="btn-table" onclick="selectTable(1)">01<span>ว่าง</span></button>
+            <button class="btn-table" onclick="selectTable(2)">02<span>ว่าง</span></button>
+            <button class="btn-table" onclick="selectTable(3)">03<span>ว่าง</span></button>
+            <button class="btn-table" onclick="selectTable(4)">04<span>ว่าง</span></button>
+            <button class="btn-table" onclick="selectTable(5)">05<span>ว่าง</span></button>
+            <button class="btn-table" onclick="selectTable(6)">06<span>ว่าง</span></button>
+            <button class="btn-table" onclick="selectTable(7)">07<span>ว่าง</span></button>
+            <button class="btn-table" onclick="selectTable(8)">08<span>ว่าง</span></button>
+        </div>
+    </div>
+
+    <div id="menuPage">
+        <div class="section-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <div onclick="showTableSelection()" style="font-size:20px; cursor:pointer;">⬅</div>
             <div>
-                <h1 style="font-size:18px;">สั่งอาหาร</h1>
-                <p>โต๊ะเบอร์ <span id="displayTable" style="font-weight:bold; color:#fff0c4;">-</span></p>
+                <h2 style="font-size:18px;">รายการอาหาร</h2>
+                <p style="margin:0;">โต๊ะ: <span id="displayTable" style="color:var(--red); font-weight:bold;">-</span></p>
             </div>
             <div style="width:20px;"></div>
         </div>
-        <div class="content">
-            <div class="section-title">เมนูแนะนำ</div>
-            <div id="menuContainer" class="menu-list"></div>
-        </div>
-        <div class="bottom-bar">
-            <div style="display:flex; justify-content:space-between; margin-bottom:10px; font-weight:bold;">
-                <span>ยอดรวม:</span> <span id="totalPrice" style="color:var(--primary)">0 บาท</span>
+
+        <div id="menuContainer" class="menu-list"></div>
+
+        <div class="bottom-nav">
+            <div>
+                <div style="font-size:12px; color:#666;">ยอดรวม</div>
+                <div id="totalPrice" style="font-size:20px; font-weight:bold; color:var(--red);">0 ฿</div>
             </div>
-            <button id="btnOrder" class="btn-checkout" onclick="confirmOrder()">ยืนยันสั่งอาหาร</button>
+            <button id="btnOrder" class="btn-confirm" onclick="confirmOrder()" disabled>ยืนยันการสั่ง</button>
         </div>
     </div>
 
@@ -99,11 +168,27 @@
             { id: 5, name: "ชาไทยเย็น", price: 25 }, { id: 6, name: "เล้งแซ่บ", price: 80 }
         ];
 
+        function showTableSelection() {
+            document.getElementById("welcomePage").style.display = "none";
+            document.getElementById("menuPage").style.display = "none";
+            document.getElementById("tablePage").style.display = "block";
+        }
+
+        function selectTakeaway() {
+            currentTable = 0; // 0 = กลับบ้าน
+            enterMenuPage("กลับบ้าน");
+        }
+
         function selectTable(num) {
             currentTable = num;
-            document.getElementById("pageTable").style.display = "none";
-            document.getElementById("pageMenu").style.display = "flex";
-            document.getElementById("displayTable").innerText = num.toString().padStart(2, '0');
+            enterMenuPage(num);
+        }
+
+        function enterMenuPage(tableLabel) {
+            document.getElementById("welcomePage").style.display = "none";
+            document.getElementById("tablePage").style.display = "none";
+            document.getElementById("menuPage").style.display = "block";
+            document.getElementById("displayTable").innerText = tableLabel;
             renderMenu();
         }
 
@@ -111,10 +196,13 @@
             const container = document.getElementById("menuContainer");
             container.innerHTML = menuItems.map(item => `
                 <div class="menu-item">
-                    <div class="menu-info"><h3>${item.name}</h3><div class="price">${item.price}.-</div></div>
-                    <div class="qty-box">
+                    <div>
+                        <div style="font-weight:600;">${item.name}</div>
+                        <div style="color:var(--red); font-weight:bold;">${item.price} ฿</div>
+                    </div>
+                    <div class="qty-control">
                         <button class="btn-qty" onclick="updateQty(${item.id}, -1)">-</button>
-                        <div class="qty-num" id="qty-${item.id}">0</div>
+                        <span id="qty-${item.id}" style="width:20px; text-align:center;">${cart[item.id]||0}</span>
                         <button class="btn-qty" onclick="updateQty(${item.id}, 1)">+</button>
                     </div>
                 </div>
@@ -126,27 +214,28 @@
             cart[id] += change;
             if (cart[id] < 0) cart[id] = 0;
             document.getElementById(`qty-${id}`).innerText = cart[id];
-            
+            calculateTotal();
+        }
+
+        function calculateTotal() {
             let total = 0, count = 0;
-            menuItems.forEach(item => { if(cart[item.id]) { total += item.price * cart[item.id]; count += cart[item.id]; } });
-            document.getElementById("totalPrice").innerText = total + " บาท";
-            
-            const btn = document.getElementById("btnOrder");
-            if(count > 0) btn.classList.add("active"); else btn.classList.remove("active");
+            menuItems.forEach(i => { if(cart[i.id]) { total += i.price * cart[i.id]; count += cart[i.id]; } });
+            document.getElementById("totalPrice").innerText = total + " ฿";
+            document.getElementById("btnOrder").disabled = (count === 0);
         }
 
         async function confirmOrder() {
-            if(!confirm(`ยืนยันการสั่งอาหาร?`)) return;
+            if(!confirm("ยืนยันการสั่งอาหาร?")) return;
             let items = [];
             menuItems.forEach(i => { if(cart[i.id]>0) items.push({name: i.name, qty: cart[i.id], price: i.price}) });
-            
+
             try {
                 await fetch('https://menu-tmrx.onrender.com/api/order', {
                     method: 'POST', headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ tableNo: currentTable, items: items, total: parseInt(document.getElementById("totalPrice").innerText) })
                 });
                 alert("✅ สั่งเรียบร้อย!"); location.reload();
-            } catch(e) { alert("Error connecting to server"); }
+            } catch(e) { alert("Error Server Connection"); }
         }
     </script>
 </body>

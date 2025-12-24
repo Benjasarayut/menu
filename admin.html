@@ -3,177 +3,340 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff POS System</title>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    <title>Kopihub Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
-        :root { --primary: #d32f2f; --bg: #fff5f5; --white: #ffffff; --green: #2e7d32; --gold: #ffc107; }
-        body { font-family: 'Prompt', sans-serif; background-color: var(--bg); margin: 0; height: 100vh; display: flex; flex-direction: column; }
-        
-        /* Top Bar แดงทอง */
-        .top-bar { background: linear-gradient(135deg, #b71c1c, #d32f2f); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
-        .logo-box h1 { margin: 0; font-size: 20px; font-weight: 600; }
-        .logo-box p { margin: 0; font-size: 12px; color: var(--gold); }
-        
-        /* Layout หลัก แบ่งซ้ายขวา */
-        .dashboard-layout { display: grid; grid-template-columns: 350px 1fr; gap: 20px; padding: 20px; flex-grow: 1; overflow: hidden; }
-        
-        /* Panel ซ้าย: รายการโต๊ะ */
-        .panel-tables { background: var(--white); border-radius: 15px; padding: 20px; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .panel-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; color: var(--primary); display: flex; justify-content: space-between; }
-        
-        .table-list { display: flex; flex-direction: column; gap: 10px; }
-        .table-card { 
-            padding: 15px; border-radius: 10px; border: 1px solid #eee; background: white; cursor: pointer; transition: 0.2s; 
-            display: flex; justify-content: space-between; align-items: center;
-        }
-        .table-card:hover { transform: translateX(5px); border-color: var(--primary); }
-        .table-card.active-select { background-color: #ffebee; border-color: var(--primary); }
-        
-        .t-name { font-weight: bold; font-size: 16px; }
-        .t-status { font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: bold; }
-        .status-free { background: #e8f5e9; color: var(--green); border: 1px solid #c8e6c9; }
-        .status-busy { background: #ffebee; color: var(--primary); border: 1px solid #ffcdd2; animation: pulse 2s infinite; }
+        :root { --primary: #d32f2f; --primary-dark: #b71c1c; --gold: #ffc107; --bg: #fffbf0; --green: #4caf50; --text: #333; }
+        body { font-family: 'Prompt', sans-serif; background-color: var(--bg); margin: 0; padding: 0; height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        /* Panel ขวา: รายละเอียดบิล */
-        .panel-order { background: var(--white); border-radius: 15px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
-        .order-content { flex-grow: 1; overflow-y: auto; }
+        /* --- HEADER (แดง-ทอง) --- */
+        .header { background: linear-gradient(180deg, var(--primary) 0%, var(--primary-dark) 100%); padding: 15px; text-align: center; color: white; position: relative; box-shadow: 0 4px 10px rgba(0,0,0,0.2); z-index: 10; }
+        .brand-badge { display: inline-block; background: var(--primary-dark); padding: 5px 25px; border-radius: 20px; border: 2px solid var(--gold); box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .brand-badge h1 { margin: 0; font-size: 18px; color: var(--gold); letter-spacing: 1px; }
+        .sub-title { font-size: 12px; color: rgba(255,255,255,0.8); margin-top: 5px; }
+
+        /* --- NAV TABS (สลับหน้า) --- */
+        .nav-tabs { display: flex; justify-content: center; margin: 20px auto; background: white; border-radius: 50px; padding: 5px; width: fit-content; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .tab-btn { border: none; background: none; padding: 10px 40px; border-radius: 40px; font-size: 16px; font-weight: 600; cursor: pointer; color: #888; transition: 0.3s; display: flex; align-items: center; gap: 8px; }
+        .tab-btn.active { background: var(--primary); color: white; box-shadow: 0 4px 10px rgba(211, 47, 47, 0.4); }
         
-        .empty-state { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #aaa; }
+        /* --- MAIN CONTAINER --- */
+        .main-content { flex-grow: 1; position: relative; overflow: hidden; }
+        .view-section { position: absolute; top: 0; left: 0; width: 100%; height: 100%; padding: 20px; box-sizing: border-box; overflow-y: auto; display: none; animation: fadeIn 0.4s; }
+        .view-section.active { display: block; }
+
+        /* --- VIEW 1: STAFF TABLET (Dashboard) --- */
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; margin-bottom: 25px; }
+        .stat-card { background: white; padding: 20px; border-radius: 12px; border-left: 5px solid #ddd; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
+        .stat-card h3 { margin: 0; font-size: 14px; color: #666; }
+        .stat-card .value { font-size: 32px; font-weight: bold; margin-top: 5px; color: #333; }
+        .stat-card.green { border-color: #a5d6a7; background: #e8f5e9; }
+        .stat-card.red { border-color: #ef9a9a; background: #ffebee; }
+        .stat-card.gold { border-color: #ffe082; background: #fff8e1; }
+
+        .dashboard-layout { display: grid; grid-template-columns: 300px 1fr; gap: 20px; height: calc(100% - 130px); }
+        .list-panel { background: white; border-radius: 15px; padding: 15px; overflow-y: auto; }
+        .grid-panel { background: white; border-radius: 15px; padding: 25px; overflow-y: auto; }
         
-        .bill-header { text-align: center; margin-bottom: 20px; border-bottom: 1px dashed #ccc; padding-bottom: 15px; }
-        .bill-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f9f9f9; }
-        
-        .bill-footer { margin-top: 20px; border-top: 2px solid #eee; padding-top: 15px; }
-        .total-row { display: flex; justify-content: space-between; font-size: 24px; font-weight: bold; color: var(--primary); margin-bottom: 20px; }
-        
-        .btn-pay { width: 100%; background: var(--green); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; }
-        .btn-pay:hover { background: #1b5e20; }
-        
-        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.4); } 70% { box-shadow: 0 0 0 5px rgba(211, 47, 47, 0); } 100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); } }
+        .layout-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 15px; }
+        .table-box { 
+            aspect-ratio: 1/1; border-radius: 15px; display: flex; flex-direction: column; justify-content: center; align-items: center; 
+            border: 2px solid transparent; cursor: pointer; transition: 0.2s; position: relative;
+        }
+        .table-box.empty { background: #e8f5e9; border-color: #c8e6c9; color: var(--green); }
+        .table-box.occupied { background: #ffebee; border-color: #ffcdd2; color: var(--primary); animation: pulse 2s infinite; }
+        .table-box h4 { font-size: 20px; margin: 0; }
+        .table-box span { font-size: 12px; margin-top: 5px; font-weight: bold; padding: 4px 10px; border-radius: 10px; background: rgba(255,255,255,0.8); }
+
+        /* --- VIEW 2: POS SYSTEM --- */
+        .pos-layout { display: grid; grid-template-columns: 280px 1fr 320px; gap: 15px; height: 100%; }
+        .col-box { background: white; border-radius: 15px; padding: 15px; display: flex; flex-direction: column; box-shadow: 0 4px 10px rgba(0,0,0,0.03); overflow: hidden; }
+        .col-header { background: var(--primary); color: white; padding: 10px 15px; border-radius: 10px; font-weight: bold; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
+
+        /* Left: Table List */
+        .pos-table-item { padding: 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; }
+        .pos-table-item:hover { background: #f9f9f9; }
+        .pos-table-item.active { background: #ffebee; border-left: 4px solid var(--primary); }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+        .dot-green { background: var(--green); } .dot-red { background: var(--primary); }
+
+        /* Center: Menu Grid */
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; overflow-y: auto; padding: 5px; }
+        .menu-card { background: #fff; border: 1px solid #eee; border-radius: 10px; padding: 15px; text-align: center; cursor: pointer; transition: 0.2s; }
+        .menu-card:hover { border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .menu-card h4 { font-size: 14px; margin: 10px 0 5px; color: #333; }
+        .menu-price { color: var(--primary); font-weight: bold; font-size: 14px; }
+
+        /* Right: Order Bill */
+        .bill-items { flex-grow: 1; overflow-y: auto; border-top: 1px dashed #ddd; border-bottom: 1px dashed #ddd; padding: 10px 0; margin: 10px 0; }
+        .bill-row { display: flex; justify-content: space-between; padding: 8px 0; font-size: 14px; }
+        .bill-total { font-size: 24px; font-weight: bold; text-align: right; color: var(--primary); margin-bottom: 15px; }
+        .btn-pay { width: 100%; background: var(--primary); color: white; padding: 15px; border: none; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-pay:hover { background: var(--primary-dark); }
+        .btn-pay:disabled { background: #ccc; cursor: not-allowed; }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(211, 47, 47, 0); } 100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); } }
     </style>
 </head>
 <body>
 
-    <div class="top-bar">
-        <div class="logo-box">
-            <h1>Kopihub System</h1>
-            <p>Management & POS</p>
+    <div class="header">
+        <div class="brand-badge">
+            <h1>Kopihub Dim Sum Restaurant</h1>
         </div>
-        <div>
-            <span style="font-size:14px; opacity:0.8;">Admin Logged In</span>
-        </div>
+        <div class="sub-title">Admin Management System</div>
     </div>
 
-    <div class="dashboard-layout">
-        <aside class="panel-tables">
-            <div class="panel-header">Table Status <span style="font-size:12px; color:#666;">Live</span></div>
-            <div id="tableList" class="table-list">Loading...</div>
-        </aside>
+    <div class="nav-tabs">
+        <button class="tab-btn active" onclick="switchTab('dashboard')">📊 Staff Tablet</button>
+        <button class="tab-btn" onclick="switchTab('pos')">🖥️ POS System</button>
+    </div>
 
-        <main class="panel-order">
-            <div id="orderDetail" class="empty-state">
-                <div style="font-size:40px;">🍽️</div>
-                <p>เลือกโต๊ะทางซ้ายเพื่อดูรายการ</p>
+    <div class="main-content">
+        
+        <div id="view-dashboard" class="view-section active">
+            <div class="stats-row">
+                <div class="stat-card green"><h3>Available</h3><div class="value" id="count-free">0</div></div>
+                <div class="stat-card red"><h3>Occupied</h3><div class="value" id="count-busy">0</div></div>
+                <div class="stat-card gold"><h3>Reserved</h3><div class="value">0</div></div>
+                <div class="stat-card"><h3>Avg Wait Time</h3><div class="value">5 min</div></div>
             </div>
-        </main>
+
+            <div class="dashboard-layout">
+                <div class="list-panel">
+                    <h3 style="margin-top:0; color:var(--primary);">Real-Time Status</h3>
+                    <div id="dashboard-list">Loading...</div>
+                </div>
+                <div class="grid-panel">
+                    <h3 style="margin-top:0; border-bottom:2px solid #eee; padding-bottom:10px;">Table Layout</h3>
+                    <div id="dashboard-grid" class="layout-grid">Loading...</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-pos" class="view-section">
+            <div class="pos-layout">
+                <div class="col-box">
+                    <div class="col-header">🍽️ Select Table</div>
+                    <div id="pos-table-list" style="overflow-y:auto;">Loading...</div>
+                </div>
+
+                <div class="col-box">
+                    <div class="col-header">🍗 Menu Items</div>
+                    <div id="pos-menu-grid" class="menu-grid"></div>
+                </div>
+
+                <div class="col-box">
+                    <div class="col-header">🧾 Current Order</div>
+                    <div style="text-align:center; margin-bottom:10px;">
+                        <h2 style="margin:0; color:var(--primary);" id="bill-table-no">Table --</h2>
+                        <span id="bill-status" style="font-size:12px; color:#888;">Select a table</span>
+                    </div>
+                    <div id="bill-items" class="bill-items">
+                        <div style="text-align:center; color:#aaa; margin-top:50px;">No Items</div>
+                    </div>
+                    <div>
+                        <div style="display:flex; justify-content:space-between;">
+                            <span>Total</span>
+                            <span id="bill-total-text" style="font-weight:bold;">0.00</span>
+                        </div>
+                        <h1 class="bill-total" id="bill-total">0 ฿</h1>
+                        <button id="btn-checkout" class="btn-pay" onclick="clearTable()" disabled>💰 CHECKOUT</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script>
+        // ข้อมูลเมนู (เหมือนหน้าลูกค้า)
+        const menuItems = [
+            { id: 1, name: "ข้าวมันไก่ต้ม", price: 50 }, { id: 2, name: "ข้าวมันไก่ทอด", price: 50 },
+            { id: 3, name: "ข้าวมันไก่ผสม", price: 60 }, { id: 4, name: "โรตีกล้วยหอม", price: 40 },
+            { id: 5, name: "ชาไทยเย็น", price: 25 }, { id: 6, name: "เล้งแซ่บ", price: 80 },
+            { id: 7, name: "ข้าวยำไก่แซ่บ", price: 60 }, { id: 8, name: "น้ำเปล่า", price: 10 }
+        ];
+
         let allTables = {};
         let selectedTableId = null;
 
-        setInterval(fetchData, 3000);
+        // เริ่มทำงาน
+        renderMenu();
+        setInterval(fetchData, 2000); // ดึงข้อมูลทุก 2 วิ
         fetchData();
 
+        // 1. สลับแท็บ
+        function switchTab(tabName) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+            
+            document.getElementById(`view-${tabName}`).classList.add('active');
+            event.currentTarget.classList.add('active');
+        }
+
+        // 2. ดึงข้อมูลจาก Server
         async function fetchData() {
             try {
                 const res = await fetch('https://menu-tmrx.onrender.com/api/admin/tables');
                 allTables = await res.json();
-                renderTableList();
-                if (selectedTableId) renderOrderDetail(selectedTableId); // อัปเดตหน้าขวาถ้าเปิดค้างไว้
+                updateDashboard();
+                updatePOS();
             } catch (err) { console.error("Sync Error"); }
         }
 
-        function renderTableList() {
-            const container = document.getElementById("tableList");
-            let html = "";
+        // 3. อัปเดตหน้า Dashboard (Staff Tablet)
+        function updateDashboard() {
+            let freeCount = 0;
+            let busyCount = 0;
+            let gridHtml = "";
+            let listHtml = "";
+
             for (let i = 1; i <= 8; i++) {
                 const t = allTables[i];
                 const isBusy = (t.status !== 'empty');
-                const activeClass = (selectedTableId == i) ? 'active-select' : '';
-                
-                html += `
-                <div class="table-card ${activeClass}" onclick="selectTable(${i})">
-                    <div>
-                        <div class="t-name">Table ${i.toString().padStart(2, '0')}</div>
-                        <div style="font-size:12px; color:#666;">${isBusy ? t.items.length + ' รายการ' : 'ว่าง'}</div>
-                    </div>
-                    <div class="t-status ${isBusy ? 'status-busy' : 'status-free'}">
-                        ${isBusy ? 'Occupied' : 'Available'}
-                    </div>
+                if(isBusy) busyCount++; else freeCount++;
+
+                // Grid Box
+                gridHtml += `
+                <div class="table-box ${isBusy ? 'occupied' : 'empty'}" onclick="jumpToPos(${i})">
+                    <h4>Table ${i}</h4>
+                    <span>${isBusy ? 'Occupied' : 'Available'}</span>
+                    ${isBusy ? `<small style="color:#d32f2f; margin-top:5px;">${t.total}฿</small>` : ''}
+                </div>`;
+
+                // List Item
+                listHtml += `
+                <div style="padding:10px; border-bottom:1px solid #eee; display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:bold;">Table ${i}</span>
+                    <span style="font-size:12px; padding:3px 8px; border-radius:10px; background:${isBusy?'#ffebee':'#e8f5e9'}; color:${isBusy?'red':'green'};">
+                        ${isBusy ? 'Occupied' : 'Free'}
+                    </span>
                 </div>`;
             }
-            container.innerHTML = html;
+
+            document.getElementById("count-free").innerText = freeCount;
+            document.getElementById("count-busy").innerText = busyCount;
+            document.getElementById("dashboard-grid").innerHTML = gridHtml;
+            document.getElementById("dashboard-list").innerHTML = listHtml;
+        }
+
+        // 4. อัปเดตหน้า POS
+        function updatePOS() {
+            // Render Table List (Left Col)
+            const listContainer = document.getElementById("pos-table-list");
+            let listHtml = "";
+            for (let i = 1; i <= 8; i++) {
+                const t = allTables[i];
+                const isBusy = (t.status !== 'empty');
+                const isActive = (selectedTableId == i) ? 'active' : '';
+                
+                listHtml += `
+                <div class="pos-table-item ${isActive}" onclick="selectTable(${i})">
+                    <div>
+                        <strong>Table ${i}</strong>
+                        <div style="font-size:12px; color:#888;">${isBusy ? t.items.length + ' Items' : 'Empty'}</div>
+                    </div>
+                    <div class="status-dot ${isBusy ? 'dot-red' : 'dot-green'}"></div>
+                </div>`;
+            }
+            listContainer.innerHTML = listHtml;
+
+            // Render Bill (Right Col) ถ้ามีการเลือกโต๊ะอยู่
+            if (selectedTableId) renderBill(selectedTableId);
         }
 
         function selectTable(id) {
             selectedTableId = id;
-            renderTableList(); // เพื่ออัปเดตสีปุ่มที่เลือก
-            renderOrderDetail(id);
+            updatePOS(); // รีเฟรชเพื่อเปลี่ยนสีปุ่ม
         }
 
-        function renderOrderDetail(id) {
-            const container = document.getElementById("orderDetail");
-            const data = allTables[id];
+        function jumpToPos(id) {
+            selectedTableId = id;
+            switchTab('pos');
+            // Hack: ปรับปุ่ม Tab ให้ Active ตาม
+            document.querySelectorAll('.tab-btn')[0].classList.remove('active');
+            document.querySelectorAll('.tab-btn')[1].classList.add('active');
+            updatePOS();
+        }
 
-            if (!data || data.status === 'empty') {
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div style="font-size:60px; color:#ddd;">✅</div>
-                        <h2 style="color:#2e7d32;">Table ${id} is Available</h2>
-                        <p>ยังไม่มีรายการสั่งอาหารเข้ามา</p>
-                    </div>`;
+        function renderBill(id) {
+            const t = allTables[id];
+            document.getElementById("bill-table-no").innerText = `Table ${id}`;
+            document.getElementById("bill-status").innerText = t.status === 'empty' ? 'Ready to order' : 'Occupied';
+            
+            const btnCheckout = document.getElementById("btn-checkout");
+            const billContainer = document.getElementById("bill-items");
+
+            if (!t || t.items.length === 0) {
+                billContainer.innerHTML = `<div style="text-align:center; color:#aaa; margin-top:50px;">No Items</div>`;
+                document.getElementById("bill-total").innerText = "0 ฿";
+                document.getElementById("bill-total-text").innerText = "0.00";
+                btnCheckout.disabled = true;
                 return;
             }
 
-            // ถ้ามีรายการอาหาร
-            let itemsHtml = data.items.map(item => `
-                <div class="bill-item">
-                    <span>${item.name} <small style="color:#888;">x${item.qty}</small></span>
+            let html = "";
+            t.items.forEach(item => {
+                html += `
+                <div class="bill-row">
+                    <span>${item.name} <small>x${item.qty}</small></span>
                     <span>${item.price * item.qty}</span>
-                </div>
-            `).join('');
-
-            container.innerHTML = `
-                <div class="order-content">
-                    <div class="bill-header">
-                        <h2 style="margin:0;">Table ${id.toString().padStart(2, '0')}</h2>
-                        <span style="color:var(--primary); font-weight:bold;">Status: Unpaid</span>
-                    </div>
-                    <div style="padding:0 20px;">
-                        <h3 style="margin-bottom:10px;">Current Order</h3>
-                        ${itemsHtml}
-                    </div>
-                </div>
-                <div class="bill-footer">
-                    <div class="total-row">
-                        <span>Total Amount</span>
-                        <span>${data.total} THB</span>
-                    </div>
-                    <button class="btn-pay" onclick="clearTable(${id})">💰 CONFIRM PAYMENT</button>
-                </div>
-            `;
+                </div>`;
+            });
+            billContainer.innerHTML = html;
+            document.getElementById("bill-total").innerText = t.total + " ฿";
+            document.getElementById("bill-total-text").innerText = t.total + ".00";
+            btnCheckout.disabled = false;
         }
 
-        async function clearTable(id) {
-            if(!confirm(`ยืนยันการรับเงิน โต๊ะ ${id} ?`)) return;
+        // 5. เรนเดอร์เมนู (กลาง)
+        function renderMenu() {
+            const container = document.getElementById("pos-menu-grid");
+            container.innerHTML = menuItems.map(item => `
+                <div class="menu-card" onclick="adminOrder(${item.id})">
+                    <div style="font-size:24px;">🍲</div>
+                    <h4>${item.name}</h4>
+                    <div class="menu-price">${item.price}.-</div>
+                </div>
+            `).join('');
+        }
+
+        // 6. Admin กดสั่งอาหารเพิ่มให้ลูกค้า (ใช้ API เดียวกับลูกค้า)
+        async function adminOrder(itemId) {
+            if (!selectedTableId) { alert("กรุณาเลือกโต๊ะก่อนครับ"); return; }
+            
+            const item = menuItems.find(i => i.id === itemId);
+            const orderData = {
+                tableNo: selectedTableId,
+                items: [{ name: item.name, qty: 1, price: item.price }],
+                total: item.price
+            };
+
+            try {
+                await fetch('https://menu-tmrx.onrender.com/api/order', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(orderData)
+                });
+                // ไม่ต้องทำอะไร เดี๋ยว fetchData จะอัปเดตหน้าจอเอง
+            } catch(e) { alert("Error Ordering"); }
+        }
+
+        // 7. เช็คบิล (เคลียร์โต๊ะ)
+        async function clearTable() {
+            if(!confirm(`ยืนยันการรับเงิน โต๊ะ ${selectedTableId}?`)) return;
+            
             await fetch('https://menu-tmrx.onrender.com/api/admin/clear-table', {
-                method: 'POST', headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ tableNo: id })
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tableNo: selectedTableId })
             });
-            selectedTableId = null; // เคลียร์หน้าจอขวา
-            renderOrderDetail(null); // กลับไปหน้าว่าง
-            fetchData(); // ดึงข้อมูลใหม่ทันที
+            selectedTableId = null; // เคลียร์การเลือก
+            document.getElementById("bill-table-no").innerText = "Table --"; // รีเซ็ตหน้าบิล
+            document.getElementById("bill-items").innerHTML = `<div style="text-align:center; color:#aaa; margin-top:50px;">No Items</div>`;
+            document.getElementById("bill-total").innerText = "0 ฿";
+            document.getElementById("btn-checkout").disabled = true;
+            fetchData();
         }
     </script>
 </body>
