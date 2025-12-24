@@ -9,8 +9,8 @@ app.use(bodyParser.json());
 
 // ==========================================
 // ⚠️ ใส่ Token และ User ID ของคุณที่นี่
-const CHANNEL_ACCESS_TOKEN = 'ใส่_TOKEN_ของคุณที่นี่'; 
-const ADMIN_USER_ID = 'ใส่_USER_ID_ของคุณที่นี่';
+const CHANNEL_ACCESS_TOKEN = '4FC23qwpo4NklMYi5W6dgDMU9I3hQexRs6T7A+hvkslOzzlwzpKzSfakAWZiFlFXylvI9HicAv9F/xLJoVLzGC11Xx3RRJihmimr43Zy2MXm3w6In4Vaa94czTR9KVDlcX9jviWRrqyQ9X605gxbtAdB04t89/1O/w1cDnyilFU='; 
+const ADMIN_USER_ID = 'Uaee9c1eebc0f49f0190de36b4e3d0bdb';
 
 // 🟢 ตัวแปรนับคิว (เริ่มที่ 1)
 let dailyQueue = 1; 
@@ -19,6 +19,7 @@ let dailyQueue = 1;
 app.post('/api/order', async (req, res) => {
     try {
         // --- ⏰ โซนตรวจสอบเวลาเปิด-ปิด (เพิ่มใหม่) ---
+        /*
         const now = new Date();
         const currentHour = now.getHours(); // ดึงเวลาปัจจุบัน (ชั่วโมง)
 
@@ -29,7 +30,7 @@ app.post('/api/order', async (req, res) => {
             return res.json({ status: 'closed', message: '⛔ ร้านยังไม่เปิดครับ\n(เปิด 19.00 - 00.00 น.)' });
         }
         // ------------------------------------------
-
+    */
         const { name, phone, payment, items, total, type } = req.body;
 
         // 1. ✅ ตัดคิวปัจจุบัน และเตรียมคิวถัดไป

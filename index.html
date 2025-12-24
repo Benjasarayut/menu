@@ -4,151 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ร้านข้าวมันไก่และโรตี</title>
-    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
-    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     
-    <style>
-        * { box-sizing: border-box; font-family: 'Prompt', sans-serif; }
-        body {
-            margin: 0; padding: 0;
-            background: #f5f5f5; /* สีพื้นหลังหลัก */
-            color: #333;
-        }
-
-        /* --- 🎨 หน้าแรก (Landing Page) --- */
-        .landing-container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            background: linear-gradient(135deg, #FFEFBA 0%, #FFFFFF 100%); /* ไล่สีพื้นหลัง */
-            padding: 20px;
-        }
-        .welcome-box {
-            background: white;
-            padding: 40px 30px;
-            border-radius: 25px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-            text-align: center;
-            width: 100%;
-            max-width: 400px;
-            animation: slideUp 0.8s ease;
-        }
-        .shop-logo {
-            width: 100px;
-            height: 100px;
-            background-color: #eee;
-            border-radius: 50%;
-            margin: 0 auto 20px;
-            overflow: hidden;
-            border: 3px solid white;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-        .shop-logo img { width: 100%; height: 100%; object-fit: cover; }
-        h1 { margin: 0; color: #333; font-size: 26px; font-weight: 600; }
-        p { color: #666; margin-top: 5px; }
-        
-        /* ปุ่มหน้าแรก */
-        .landing-buttons { display: flex; flex-direction: column; gap: 15px; margin-top: 30px; }
-        .btn-select {
-            border: none;
-            padding: 15px;
-            border-radius: 15px;
-            font-size: 18px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s, box-shadow 0.2s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            color: white;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-        }
-        .btn-select:active { transform: scale(0.95); }
-        .btn-dine-in { background: linear-gradient(45deg, #06C755, #2ecc71); } /* สีเขียว LINE */
-        .btn-takeaway { background: linear-gradient(45deg, #FF9966, #FF5E62); } /* สีส้มอาหาร */
-
-        /* --- 🛑 กล่องร้านปิด --- */
-        .closed-box {
-            background-color: #fff0f0;
-            border: 2px dashed #ff4d4d;
-            border-radius: 15px;
-            padding: 25px;
-            margin-top: 20px;
-            text-align: center;
-            color: #cc0000;
-            animation: fadeIn 0.5s;
-        }
-        .closed-icon { font-size: 60px; display: block; margin-bottom: 10px; }
-        
-        /* --- 📱 หน้าเมนู (Main App) --- */
-        .header-bar {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 20px; background: white;
-            position: sticky; top: 0; z-index: 100;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-        }
-        .btn-back { border: none; background: #f0f0f0; padding: 8px 15px; border-radius: 20px; cursor: pointer; color: #555; font-size: 14px; }
-        .badge { background: #06C755; color: white; padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; }
-        
-        .container { padding: 20px; padding-bottom: 100px; max-width: 600px; margin: 0 auto; }
-        .menu-grid { display: grid; gap: 15px; }
-        .menu-item {
-            background: white; border-radius: 15px; padding: 15px;
-            display: flex; justify-content: space-between; align-items: center;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-        }
-        .menu-info h3 { margin: 0 0 5px; font-size: 18px; color: #333; }
-        .price { color: #06C755; font-weight: bold; font-size: 16px; }
-        
-        .qty-controls { display: flex; align-items: center; gap: 10px; background: #f8f8f8; padding: 5px; border-radius: 20px; }
-        .btn-qty { width: 32px; height: 32px; border-radius: 50%; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
-        .btn-qty:first-child { background: #e0e0e0; color: #333; }
-        .btn-qty:last-child { background: #06C755; color: white; }
-        .qty-display { min-width: 20px; text-align: center; font-weight: bold; }
-
-        .bottom-bar {
-            position: fixed; bottom: 0; left: 0; right: 0;
-            background: white; padding: 20px;
-            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
-            display: flex; justify-content: space-between; align-items: center;
-            border-radius: 20px 20px 0 0;
-            max-width: 600px; margin: 0 auto;
-        }
-        .total-price { font-size: 18px; font-weight: bold; }
-        .btn-checkout {
-            background: #06C755; color: white; border: none;
-            padding: 12px 25px; border-radius: 30px;
-            font-size: 16px; font-weight: bold; cursor: pointer;
-        }
-        .btn-checkout:disabled { background: #ccc; }
-
-        /* --- 📝 Modal สรุปรายการ --- */
-        .modal {
-            display: none; position: fixed; z-index: 1000;
-            left: 0; top: 0; width: 100%; height: 100%;
-            background-color: rgba(0,0,0,0.5);
-            justify-content: center; align-items: flex-end;
-        }
-        .modal-content {
-            background-color: white; width: 100%; max-width: 600px;
-            padding: 30px; border-radius: 25px 25px 0 0;
-            animation: slideUp 0.3s ease;
-        }
-        .summary-list { margin: 20px 0; max-height: 200px; overflow-y: auto; }
-        .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;}
-        
-        .input-box { width: 100%; padding: 12px; margin: 5px 0 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
-        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
-        .btn-cancel, .btn-confirm { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; font-weight: bold; }
-        .btn-cancel { background: #f0f0f0; color: #555; }
-        .btn-confirm { background: #06C755; color: white; }
-
-        /* Animation */
-        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
 </head>
 <body>
 
@@ -256,12 +117,12 @@
             const minute = now.getMinutes();
 
             if (hour < 19) { // ปิดก่อน 1 ทุ่ม
-                document.getElementById("landingButtons").style.display = "none";
-                document.getElementById("shopClosedMessage").style.display = "block";
+                document.getElementById("landingButtons").style.display = "flex";
+                document.getElementById("shopClosedMessage").style.display = "none";
 
                 // เงื่อนไขพิเศษ: 00.00 - 01.30
                 if (hour === 0 || (hour === 1 && minute <= 30)) {
-                    document.getElementById("lateNightContent").style.display = "block";
+                    document.getElementById("lateNightContent").style.display = "none";
                 } else {
                     document.getElementById("lateNightContent").style.display = "none";
                 }
