@@ -5,7 +5,7 @@ const axios = require('axios');
 const fs = require('fs'); 
 
 const app = express();
-app.use(cors()); // สำคัญมาก! อนุญาตให้ GitHub Pages โทรเข้ามาได้
+app.use(cors()); // ✅ สำคัญมาก! อนุญาตให้ GitHub Pages โทรเข้ามาได้
 app.use(bodyParser.json());
 
 // ==========================================
@@ -28,12 +28,12 @@ const ORDER_RECEIVERS = [...ADMIN_IDS, ...STAFF_IDS]
 // ==========================================
 // 💾 ระบบจำค่า
 // ==========================================
-// บน Render ฟรี ไฟล์จะถูกรีเซ็ตใหม่ทุกครั้งที่ Deploy (เป็นปกติ)
+// บน Render ฟรี ระบบจะรีเซ็ตค่าทุกครั้งที่ Deploy ใหม่ (เป็นปกติของ Cloud ฟรี)
 let shopState = { isMaintenance: false, isManualClosed: false, soldOutItems: [] };
 let dailyQueue = 1; 
 
 // ==========================================
-// 🚀 API (จุดที่ Render หากันไม่เจอเมื่อกี้)
+// 🚀 API
 // ==========================================
 
 // 1. เช็คสถานะร้าน
@@ -44,8 +44,8 @@ app.get('/api/status', (req, res) => {
 // 2. อัปเดตสถานะ (เปิด/ปิดร้าน, ของหมด)
 app.post('/api/update-status', (req, res) => {
     const { userId, action, value, itemId } = req.body;
-    // (ข้ามการเช็ค ID แบบเข้มงวดไปก่อน เพื่อให้เทสผ่านง่ายๆ)
     
+    // (ข้ามการเช็ค ID แบบเข้มงวด เพื่อให้คุณเทสผ่านง่ายๆ ก่อน)
     if (action === 'toggleMaintenance') {
         shopState.isMaintenance = value;
     } else if (action === 'toggleShop') {
@@ -57,6 +57,7 @@ app.post('/api/update-status', (req, res) => {
             shopState.soldOutItems = shopState.soldOutItems.filter(id => id !== itemId);
         }
     }
+    console.log(`🔄 Update Status: ${action} -> ${value}`);
     res.json({ status: 'success', newState: shopState });
 });
 
@@ -65,15 +66,16 @@ app.post('/api/order', async (req, res) => {
     try {
         const { name, phone, payment, items, total, type, itemIds, note } = req.body;
 
+        // เช็คสถานะร้านก่อนรับออเดอร์
         if (shopState.isMaintenance) return res.json({ status: 'error', message: '🚧 ระบบปิดปรับปรุงครับ' });
         if (shopState.isManualClosed) return res.json({ status: 'error', message: '⛔ ร้านปิดรับออเดอร์ชั่วคราวครับ' });
 
         const myQueue = dailyQueue++; 
 
-        // ✅ ตอบกลับลูกค้าทันที
+        // ✅ ตอบกลับลูกค้า "ทันที"
         res.json({ status: 'success', queueNumber: myQueue });
 
-        // ส่ง LINE
+        // สร้างข้อความส่ง LINE
         const message = `
 🔢 คิวที่: ${myQueue}
 📌 แบบ: ${type}
@@ -88,6 +90,7 @@ ${items}
 ------------------------
 💰 ยอดรวม: ${total} บาท`;
 
+        // ส่งเข้า LINE (ทำเบื้องหลัง)
         if (ORDER_RECEIVERS.length > 0) {
             axios.post(
                 'https://api.line.me/v2/bot/message/multicast', 
@@ -103,9 +106,16 @@ ${items}
     }
 });
 
-// หน้า Home (เผื่อคนกดเข้าลิ้งค์ Render ตรงๆ จะได้ไม่ตกใจ)
+// ✅ หน้า Home (สำคัญ! แก้ปัญหา Not Found)
 app.get('/', (req, res) => {
-    res.send('<h1>✅ Server is running!</h1><p>Please use the App link instead.</p>');
+    res.send(`
+        <div style="text-align:center; padding-top:50px; font-family:sans-serif;">
+            <h1>✅ Server is Running!</h1>
+            <p style="color:green;">ระบบหลังบ้านทำงานปกติแล้วครับ</p>
+            <hr style="width:200px;">
+            <p>กรุณาเข้าใช้งานที่หน้าแอปหลัก</p>
+        </div>
+    `);
 });
 
 const PORT = process.env.PORT || 3000;
