@@ -65,13 +65,16 @@
                 <input type="tel" id="confirmPhone" class="input-box" placeholder="กรอกเบอร์โทรศัพท์ 10 หลัก">
             </div>
 
+            <div id="serverMessage" style="display:none; text-align:center; color:red; font-weight:bold; margin: 15px 0; background-color: #ffe6e6; padding: 10px; border-radius: 8px; border: 1px solid red;">
+            </div>
+
             <div id="dineInMessage" style="display:none; text-align:center; color:#06C755; margin: 10px 0;">
                 <p>✅ กดปุ่มยืนยันเพื่อรับบัตรคิวได้เลยครับ</p>
             </div>
 
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal()">⬅ แก้ไขรายการ</button>
-                <button class="btn-confirm" onclick="sendFinalOrder()">✅ ยืนยัน / รับคิว</button>
+                <button id="btnConfirmOrder" class="btn-confirm" onclick="sendFinalOrder()">✅ ยืนยัน / รับคิว</button>
             </div>
         </div>
     </div>
@@ -164,6 +167,12 @@
         function submitOrder() {
             document.getElementById("modalTotal").innerText = document.getElementById("totalAmount").innerText;
             
+            // ✅ รีเซ็ตหน้าตาปุ่มและข้อความเตือนทุกครั้งที่เปิด Modal
+            document.getElementById("serverMessage").style.display = "none";
+            document.getElementById("btnConfirmOrder").style.display = "inline-block";
+            document.getElementById("btnConfirmOrder").innerText = "✅ ยืนยัน / รับคิว";
+            document.getElementById("btnConfirmOrder").disabled = false;
+
             const infoSection = document.getElementById("customerInfoSection");
             const dineInMsg = document.getElementById("dineInMessage");
 
@@ -220,7 +229,7 @@
                 if (cart[item.id] > 0) itemsText += `- ${item.name} x ${cart[item.id]}\n`;
             });
 
-            const btn = document.querySelector(".btn-confirm");
+            const btn = document.getElementById("btnConfirmOrder");
             btn.innerText = "กำลังรับคิว...";
             btn.disabled = true;
             
@@ -233,7 +242,7 @@
                         'ngrok-skip-browser-warning': 'true'
                     },
                     body: JSON.stringify({
-                        name: name, // ส่งชื่อจาก LINE ไปหลังบ้าน
+                        name: name,
                         phone: phone,
                         payment: payment,
                         items: itemsText,
@@ -244,12 +253,16 @@
 
                 const result = await response.json();
 
-                // ✅✅✅ จุดเช็คว่าร้านปิดไหม (ย้ายมาไว้ตรงนี้ถูกต้องแล้วครับ) ✅✅✅
+                // ✅✅✅ แก้ใหม่: แสดงข้อความในหน้าเว็บแทน Alert ✅✅✅
                 if (result.status === 'closed') {
-                    alert(result.message); // แจ้งเตือนลูกค้า
-                    btn.innerText = "ยืนยัน / รับคิว"; // คืนค่าปุ่ม
-                    btn.disabled = false;
-                    return; // จบการทำงาน ไม่ส่งต่อ
+                    // แสดงกล่องข้อความสีแดง
+                    const msgBox = document.getElementById("serverMessage");
+                    msgBox.innerText = result.message;
+                    msgBox.style.display = "block";
+
+                    // ซ่อนปุ่มยืนยันไปเลย (จะได้กดซ้ำไม่ได้)
+                    btn.style.display = "none"; 
+                    return; 
                 }
                 // ----------------------------------------------------
 
