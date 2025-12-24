@@ -9,7 +9,7 @@ app.use(cors());
 app.use(bodyParser.json());
 
 // ==========================================
-// ⚠️ ใส่ Token และ User ID (ระบบจะช่วยลบช่องว่างให้เอง)
+// ⚠️ ใส่ Token และ User ID
 const CHANNEL_ACCESS_TOKEN = '4FC23qwpo4NklMYi5W6dgDMU9I3hQexRs6T7A+hvkslOzzlwzpKzSfakAWZiFlFXylvI9HicAv9F/xLJoVLzGC11Xx3RRJihmimr43Zy2MXm3w6In4Vaa94czTR9KVDlcX9jviWRrqyQ9X605gxbtAdB04t89/1O/w1cDnyilFU='; 
 
 // 👑 ADMIN
@@ -20,7 +20,6 @@ const ADMIN_IDS = [
 // 👨‍🍳 STAFF
 const STAFF_IDS = []; 
 
-// 🧹 ฟังก์ชันทำความสะอาด ID
 const cleanId = (id) => id.trim();
 const ORDER_RECEIVERS = [...ADMIN_IDS, ...STAFF_IDS]
     .map(cleanId)
@@ -78,9 +77,9 @@ app.post('/api/update-status', (req, res) => {
 
 app.post('/api/order', async (req, res) => {
     try {
-        // ✅ 1. รับค่า note จากหน้าเว็บ
         const { name, phone, payment, items, total, type, itemIds, note } = req.body;
 
+        // เช็คสถานะร้านก่อน
         if (shopState.isMaintenance) return res.json({ status: 'error', message: '🚧 ระบบปิดปรับปรุงครับ' });
         if (shopState.isManualClosed) return res.json({ status: 'error', message: '⛔ ร้านปิดรับออเดอร์ชั่วคราวครับ' });
         if (itemIds && itemIds.length > 0) {
@@ -88,15 +87,19 @@ app.post('/api/order', async (req, res) => {
             if (hasSoldOut) return res.json({ status: 'error', message: '❌ มีรายการอาหารที่ "หมด" อยู่ในออเดอร์ครับ' });
         }
 
+        // รันคิว
         const myQueue = dailyQueue++; 
 
-        // ✅ 2. เอา note มาใส่ในข้อความที่จะส่ง LINE
+        // ✅ ตอบกลับลูกค้า "ทันที" (ไม่ต้องรอ LINE) เพื่อความรวดเร็ว
+        res.json({ status: 'success', queueNumber: myQueue });
+
+        // --- ส่วนส่ง LINE ทำงานทีหลัง (Background Process) ---
         const message = `
 🔢 คิวที่: ${myQueue}
 📌 แบบ: ${type}
 ------------------------
 👤 ลูกค้า: ${name}
-📞 โทร: ${phone}
+📞 โทร: ${phone || '-'}
 💳 ชำระ: ${payment}
 ------------------------
 ${items}
@@ -106,19 +109,22 @@ ${items}
 💰 ยอดรวม: ${total} บาท`;
 
         if (ORDER_RECEIVERS.length > 0) {
-            await axios.post(
+            // ไม่ต้องใส่ await (Fire and Forget)
+            axios.post(
                 'https://api.line.me/v2/bot/message/multicast', 
                 { to: ORDER_RECEIVERS, messages: [{ type: 'text', text: message }] },
                 { headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${CHANNEL_ACCESS_TOKEN.trim()}` } }
-            );
+            ).catch(err => console.error("LINE Send Error:", err.message));
         }
 
-        console.log(`✅ ออเดอร์ ${myQueue} (Note: ${note}) ส่งสำเร็จ!`);
-        res.json({ status: 'success', queueNumber: myQueue });
+        console.log(`✅ Order #${myQueue} processed instantly.`);
 
     } catch (error) {
         console.error('❌ Error:', error.message);
-        res.status(500).json({ status: 'error', message: 'Server Error' });
+        // ถ้า error ก่อนที่จะส่ง res.json ให้แจ้งกลับไป
+        if (!res.headersSent) {
+            res.status(500).json({ status: 'error', message: 'Server Error' });
+        }
     }
 });
 
