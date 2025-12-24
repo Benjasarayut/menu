@@ -4,92 +4,215 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ร้านข้าวมันไก่และโรตี</title>
-    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    
     <style>
-        /* สไตล์สำหรับกล่องข้อความร้านปิด (เอาไว้โชว์หน้าแรก) */
-        .closed-box {
-            background-color: #ffe6e6;
-            border: 2px solid #ff4d4d;
-            border-radius: 12px;
+        * { box-sizing: border-box; font-family: 'Prompt', sans-serif; }
+        body {
+            margin: 0; padding: 0;
+            background: #f5f5f5; /* สีพื้นหลังหลัก */
+            color: #333;
+        }
+
+        /* --- 🎨 หน้าแรก (Landing Page) --- */
+        .landing-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: linear-gradient(135deg, #FFEFBA 0%, #FFFFFF 100%); /* ไล่สีพื้นหลัง */
             padding: 20px;
+        }
+        .welcome-box {
+            background: white;
+            padding: 40px 30px;
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            width: 100%;
+            max-width: 400px;
+            animation: slideUp 0.8s ease;
+        }
+        .shop-logo {
+            width: 100px;
+            height: 100px;
+            background-color: #eee;
+            border-radius: 50%;
+            margin: 0 auto 20px;
+            overflow: hidden;
+            border: 3px solid white;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .shop-logo img { width: 100%; height: 100%; object-fit: cover; }
+        h1 { margin: 0; color: #333; font-size: 26px; font-weight: 600; }
+        p { color: #666; margin-top: 5px; }
+        
+        /* ปุ่มหน้าแรก */
+        .landing-buttons { display: flex; flex-direction: column; gap: 15px; margin-top: 30px; }
+        .btn-select {
+            border: none;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .btn-select:active { transform: scale(0.95); }
+        .btn-dine-in { background: linear-gradient(45deg, #06C755, #2ecc71); } /* สีเขียว LINE */
+        .btn-takeaway { background: linear-gradient(45deg, #FF9966, #FF5E62); } /* สีส้มอาหาร */
+
+        /* --- 🛑 กล่องร้านปิด --- */
+        .closed-box {
+            background-color: #fff0f0;
+            border: 2px dashed #ff4d4d;
+            border-radius: 15px;
+            padding: 25px;
             margin-top: 20px;
             text-align: center;
             color: #cc0000;
             animation: fadeIn 0.5s;
         }
-        .closed-icon {
-            font-size: 50px;
-            margin-bottom: 10px;
-            display: block;
+        .closed-icon { font-size: 60px; display: block; margin-bottom: 10px; }
+        
+        /* --- 📱 หน้าเมนู (Main App) --- */
+        .header-bar {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 15px 20px; background: white;
+            position: sticky; top: 0; z-index: 100;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
         }
-        .closed-time {
-            font-size: 14px;
-            color: #666;
-            margin-top: 10px;
+        .btn-back { border: none; background: #f0f0f0; padding: 8px 15px; border-radius: 20px; cursor: pointer; color: #555; font-size: 14px; }
+        .badge { background: #06C755; color: white; padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; }
+        
+        .container { padding: 20px; padding-bottom: 100px; max-width: 600px; margin: 0 auto; }
+        .menu-grid { display: grid; gap: 15px; }
+        .menu-item {
+            background: white; border-radius: 15px; padding: 15px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
+        .menu-info h3 { margin: 0 0 5px; font-size: 18px; color: #333; }
+        .price { color: #06C755; font-weight: bold; font-size: 16px; }
+        
+        .qty-controls { display: flex; align-items: center; gap: 10px; background: #f8f8f8; padding: 5px; border-radius: 20px; }
+        .btn-qty { width: 32px; height: 32px; border-radius: 50%; border: none; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; }
+        .btn-qty:first-child { background: #e0e0e0; color: #333; }
+        .btn-qty:last-child { background: #06C755; color: white; }
+        .qty-display { min-width: 20px; text-align: center; font-weight: bold; }
+
+        .bottom-bar {
+            position: fixed; bottom: 0; left: 0; right: 0;
+            background: white; padding: 20px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            display: flex; justify-content: space-between; align-items: center;
+            border-radius: 20px 20px 0 0;
+            max-width: 600px; margin: 0 auto;
         }
+        .total-price { font-size: 18px; font-weight: bold; }
+        .btn-checkout {
+            background: #06C755; color: white; border: none;
+            padding: 12px 25px; border-radius: 30px;
+            font-size: 16px; font-weight: bold; cursor: pointer;
+        }
+        .btn-checkout:disabled { background: #ccc; }
+
+        /* --- 📝 Modal สรุปรายการ --- */
+        .modal {
+            display: none; position: fixed; z-index: 1000;
+            left: 0; top: 0; width: 100%; height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            justify-content: center; align-items: flex-end;
+        }
+        .modal-content {
+            background-color: white; width: 100%; max-width: 600px;
+            padding: 30px; border-radius: 25px 25px 0 0;
+            animation: slideUp 0.3s ease;
+        }
+        .summary-list { margin: 20px 0; max-height: 200px; overflow-y: auto; }
+        .summary-item { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px;}
+        
+        .input-box { width: 100%; padding: 12px; margin: 5px 0 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; }
+        .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
+        .btn-cancel, .btn-confirm { flex: 1; padding: 12px; border: none; border-radius: 10px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .btn-cancel { background: #f0f0f0; color: #555; }
+        .btn-confirm { background: #06C755; color: white; }
+
+        /* Animation */
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
 
     <div id="landingPage" class="landing-container">
         <div class="welcome-box">
+            <div class="shop-logo">
+                <img src="https://cdn-icons-png.flaticon.com/512/1046/1046857.png" alt="Logo">
+            </div>
+            
             <h1>ยินดีต้อนรับ 🙏</h1>
             <p>ร้านข้าวมันไก่และโรตี</p>
             
             <div id="landingButtons" class="landing-buttons">
                 <button class="btn-select btn-dine-in" onclick="selectType('ทานที่ร้าน 🍽️')">
-                    <span style="font-size: 24px;">🍽️</span> ทานที่ร้าน
+                    🍽️ ทานที่ร้าน
                 </button>
                 <button class="btn-select btn-takeaway" onclick="selectType('กลับบ้าน 🛍️')">
-                    <span style="font-size: 24px;">🥡</span> สั่งกลับบ้าน
+                    🥡 สั่งกลับบ้าน
                 </button>
             </div>
 
             <div id="shopClosedMessage" class="closed-box" style="display: none;">
                 <span class="closed-icon">⛔</span>
-                <h2>ร้านยังไม่เปิดรับออเดอร์ออนไลน์ครับ</h2>
-                <p style="font-weight: bold; font-size: 18px; margin: 10px 0;">(เปิด 19.00 - 00.00 น.)</p>
-                <hr style="border: 1px dashed #ff9999; margin: 10px 0;">
-                <p class="closed-time">
-                    ตอนนี้ร้านยังไม่เปิดระบบออนไลน์<br>
-                    ลูกค้าสามารถมาทานที่หน้าร้านได้ปกติครับ<br>
-                    <strong>หน้าร้านปิด 01.30 น.</strong>
-                </p>
+                <h2 style="margin:0; font-size:20px;">ร้านยังไม่เปิดรับออเดอร์</h2>
+                <p style="font-weight: bold; font-size: 16px; margin: 10px 0; color:#cc0000;">(เปิด 19.00 - 00.00 น.)</p>
+                
+                <div id="lateNightContent" style="display: none;">
+                    <hr style="border: 1px dashed #ff9999; margin: 15px 0;">
+                    <p class="closed-time" style="font-size: 14px;">
+                        ตอนนี้ร้านยังไม่เปิดระบบออนไลน์<br>
+                        ลูกค้าสามารถมาทานที่หน้าร้านได้ปกติครับ<br>
+                        <strong style="font-size: 16px; color:#d63031;">หน้าร้านปิด 01.30 น.</strong>
+                    </p>
+                </div>
             </div>
         </div>
     </div>
 
     <div id="mainApp" style="display: none;">
         <div class="header-bar">
-            <button onclick="goBack()" class="btn-back">⬅ เปลี่ยนประเภท</button>
+            <button onclick="goBack()" class="btn-back">⬅ ย้อนกลับ</button>
             <span id="orderTypeDisplay" class="badge">...</span>
         </div>
 
         <div class="container">
-            <div id="profile" class="profile-section" style="display:none;">
-                <img id="pictureUrl" src="" alt="Profile">
-                <h3 id="displayName"></h3>
+            <div id="profile" style="text-align:center; margin-bottom:20px; display:none;">
+                <img id="pictureUrl" src="" alt="Profile" style="width:60px; height:60px; border-radius:50%;">
+                <h3 id="displayName" style="margin:5px 0; font-size:16px;"></h3>
             </div>
             <div id="menuList" class="menu-grid"></div>
         </div>
 
         <div class="bottom-bar">
-            <div class="total-price">รวม: <span id="totalAmount">0</span> บาท</div>
+            <div class="total-price">รวม: <span id="totalAmount" style="color:#06C755;">0</span> บาท</div>
             <button id="btnCheckout" class="btn-checkout" onclick="submitOrder()" disabled>สรุปรายการ</button>
         </div>
     </div>
 
-    <div id="checkoutModal" class="modal" style="display: none;">
+    <div id="checkoutModal" class="modal">
         <div class="modal-content">
             <h2>สรุปรายการสั่งซื้อ 📝</h2>
             <div id="orderSummaryList" class="summary-list"></div>
             <hr style="border: 1px solid #eee; margin: 10px 0;">
-            <p style="text-align: right;">ยอดรวมทั้งสิ้น: <span id="modalTotal" style="color:#06C755; font-weight:bold; font-size: 18px;">0</span> บาท</p>
+            <p style="text-align: right; font-size:18px;">ยอดรวม: <span id="modalTotal" style="color:#06C755; font-weight:bold;">0</span> บาท</p>
             
             <div id="customerInfoSection">
                 <label>💳 วิธีชำระเงิน:</label>
@@ -102,12 +225,14 @@
                 <input type="tel" id="confirmPhone" class="input-box" placeholder="กรอกเบอร์โทรศัพท์ 10 หลัก">
             </div>
 
+            <div id="serverMessage" style="display:none; text-align:center; color:red; font-weight:bold; margin: 15px 0; background-color: #ffe6e6; padding: 10px; border-radius: 8px; border: 1px solid red;"></div>
+
             <div id="dineInMessage" style="display:none; text-align:center; color:#06C755; margin: 10px 0;">
                 <p>✅ กดปุ่มยืนยันเพื่อรับบัตรคิวได้เลยครับ</p>
             </div>
 
             <div class="modal-buttons">
-                <button class="btn-cancel" onclick="closeModal()">⬅ แก้ไขรายการ</button>
+                <button class="btn-cancel" onclick="closeModal()">⬅ แก้ไข</button>
                 <button id="btnConfirmOrder" class="btn-confirm" onclick="sendFinalOrder()">✅ ยืนยัน / รับคิว</button>
             </div>
         </div>
@@ -124,30 +249,33 @@
         ];
         let cart = {}; 
 
-        // ✅ ฟังก์ชันตรวจสอบเวลาทันทีที่เปิดเว็บ
+        // ✅ ฟังก์ชันเช็คเวลา (Logic เดิมที่ถูกต้อง)
         function checkShopStatusOnLoad() {
             const now = new Date();
             const hour = now.getHours();
             const minute = now.getMinutes();
 
-            // ⛔ กฎที่ 1: ร้านปิด (00.00 - 18.59)
-            // (ถ้าชั่วโมงน้อยกว่า 19 แปลว่ายังไม่ถึงเวลาเปิด)
-            if (hour < 19) {
-                // ซ่อนปุ่มกด
+            if (hour < 19) { // ปิดก่อน 1 ทุ่ม
                 document.getElementById("landingButtons").style.display = "none";
-                // โชว์ป้ายร้านปิดสีแดง
                 document.getElementById("shopClosedMessage").style.display = "block";
+
+                // เงื่อนไขพิเศษ: 00.00 - 01.30
+                if (hour === 0 || (hour === 1 && minute <= 30)) {
+                    document.getElementById("lateNightContent").style.display = "block";
+                } else {
+                    document.getElementById("lateNightContent").style.display = "none";
+                }
                 return;
             }
 
-            // ⚠️ กฎที่ 2: แจ้งเตือนช่วง 30 นาทีสุดท้าย (23.30 - 23.59)
+            // เตือนใกล้ปิด (23.30 - 23.59)
             if (hour === 23 && minute >= 30) {
                 alert(`⚠️ แจ้งเตือนใกล้ปิดระบบ!\n\nร้านจะปิดรับ "ออเดอร์ออนไลน์" เวลา 00.00 น. ครับ\n(เหลือเวลาอีก ${60 - minute} นาที)\n\n*ลูกค้ายังสามารถเดินทางมาสั่งที่หน้าร้านได้ถึง 01.30 น. ครับ`);
             }
         }
 
         async function main() {
-            checkShopStatusOnLoad(); // 👈 เช็คเวลาทันทีตรงนี้!
+            checkShopStatusOnLoad(); 
             renderMenu(); 
             try {
                 await liff.init({ liffId: "2008739684-1MCliiMk" }); 
@@ -170,13 +298,16 @@
         }
 
         function goBack() {
-            if(confirm("ต้องการเปลี่ยนประเภทการทาน?")) {
-                document.getElementById("mainApp").style.display = "none";
-                document.getElementById("landingPage").style.display = "flex";
-                cart = {}; 
-                renderMenu();
-                calculateTotal();
+            // ไม่ต้องถาม confirm ถ้ายังไม่ได้เลือกอะไร
+            let totalItems = Object.values(cart).reduce((a, b) => a + b, 0);
+            if(totalItems > 0) {
+                if(!confirm("ต้องการกลับหน้าแรก? \n(รายการอาหารที่เลือกไว้จะถูกล้าง)")) return;
             }
+            document.getElementById("mainApp").style.display = "none";
+            document.getElementById("landingPage").style.display = "flex";
+            cart = {}; 
+            renderMenu();
+            calculateTotal();
         }
 
         function renderMenu() {
@@ -219,7 +350,8 @@
 
         function submitOrder() {
             document.getElementById("modalTotal").innerText = document.getElementById("totalAmount").innerText;
-            document.getElementById("btnConfirmOrder").style.display = "inline-block";
+            document.getElementById("serverMessage").style.display = "none"; // Reset ข้อความ error
+            document.getElementById("btnConfirmOrder").style.display = "inline-block"; // Reset ปุ่ม
             document.getElementById("btnConfirmOrder").innerText = "✅ ยืนยัน / รับคิว";
             document.getElementById("btnConfirmOrder").disabled = false;
 
@@ -282,7 +414,7 @@
             btn.disabled = true;
             
             try {
-                // ✅ URL เดิมของคุณที่ถูกต้องแล้ว
+                // ✅ URL เดิมของคุณ
                 const response = await fetch('https://valene-unspitted-wirelessly.ngrok-free.dev/api/order', {
                     method: 'POST',
                     headers: { 
@@ -302,9 +434,11 @@
                 const result = await response.json();
 
                 if (result.status === 'closed') {
-                    alert(result.message);
-                    btn.innerText = "ยืนยัน / รับคิว";
-                    btn.disabled = false;
+                    // แสดงข้อความในหน้า Modal (ไม่ใช้ alert)
+                    const msgBox = document.getElementById("serverMessage");
+                    msgBox.innerText = result.message;
+                    msgBox.style.display = "block";
+                    btn.style.display = "none"; // ซ่อนปุ่มไปเลย
                     return; 
                 }
 
