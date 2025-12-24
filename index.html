@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
     <style>
-        /* ⚠️ ซ่อนปุ่ม Admin ไว้ก่อน (JS จะสั่งเปิดเองถ้า ID ตรง) */
         .admin-btn-float { display: none !important; }
     </style>
 </head>
@@ -83,14 +82,20 @@
             <div id="orderSummaryList" class="summary-list"></div>
             <hr style="border: 1px solid #eee; margin: 10px 0;">
             <p style="text-align: right; font-size:18px;">ยอดรวม: <span id="modalTotal" style="color:#06C755; font-weight:bold;">0</span> บาท</p>
+            
             <div id="customerInfoSection">
                 <label>💳 วิธีชำระเงิน:</label>
                 <select id="paymentMethod" class="input-box"><option value="สแกนจ่าย/โอน">📲 สแกนจ่าย / โอน</option><option value="เงินสด">💵 เงินสด</option></select>
                 <label style="color:red;">* 📞 เบอร์โทร:</label>
                 <input type="tel" id="confirmPhone" class="input-box" placeholder="กรอกเบอร์โทรศัพท์ 10 หลัก">
             </div>
+
+            <label style="margin-top:10px; display:block;">📝 หมายเหตุ (ถ้ามี):</label>
+            <textarea id="orderNote" class="input-box" rows="2" placeholder="เช่น ไม่ใส่แตงกวา, ขอทิชชู่เพิ่ม, แยกน้ำซุป"></textarea>
+            
             <div id="serverMessage" style="display:none; text-align:center; color:red; font-weight:bold; margin: 15px 0; background-color: #ffe6e6; padding: 10px; border-radius: 8px; border: 1px solid red;"></div>
             <div id="dineInMessage" style="display:none; text-align:center; color:#06C755; margin: 10px 0;"><p>✅ กดปุ่มยืนยันเพื่อรับบัตรคิวได้เลยครับ</p></div>
+            
             <div class="modal-buttons">
                 <button class="btn-cancel" onclick="closeModal()">⬅ แก้ไข</button>
                 <button id="btnConfirmOrder" class="btn-confirm" onclick="sendFinalOrder()">✅ ยืนยัน / รับคิว</button>
@@ -146,15 +151,13 @@
         let cart = {}; 
         let userProfile = null;
         let serverState = {};   
-        let lastStateJSON = ""; // ✅ ตัวช่วยจำค่าล่าสุด (ป้องกันการรีเฟรชหน้าจอมั่วๆ)
+        let lastStateJSON = "";
 
         async function main() {
-            await fetchShopStatus(); // โหลดครั้งแรกทันที
+            await fetchShopStatus(); 
             
-            // ✅ เริ่มระบบ Real-time (เช็คทุก 3 วินาที)
-            setInterval(() => {
-                fetchShopStatus();
-            }, 3000);
+            // Auto Update (Real-time)
+            setInterval(() => { fetchShopStatus(); }, 3000);
 
             try {
                 await liff.init({ liffId: "2008739684-1MCliiMk" }); 
@@ -173,8 +176,6 @@
         function checkUserRole() {
             if (!userProfile) return;
             const myId = userProfile.userId;
-
-            // ⚠️⚠️ กำหนด ID Admin ตรงนี้
             const ADMIN_IDS = ['Uaee9c1eebc0f49f0190de36b4e3d0bdb']; 
             const STAFF_IDS = []; 
 
@@ -188,28 +189,21 @@
             }
         }
 
-        // --- ✅ ระบบ Real-time แบบฉลาด (ไม่กระตุก) ---
         async function fetchShopStatus() {
             try {
-                // ⚠️ แก้ URL Ngrok ของคุณที่นี่
+                // ⚠️ แก้ URL Ngrok ของคุณ
                 const response = await fetch('https://valene-unspitted-wirelessly.ngrok-free.dev/api/status', {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const data = await response.json();
                 
-                // ✅ เช็คก่อนอัปเดต: ถ้าข้อมูลเหมือนเดิมเป๊ะๆ ไม่ต้องทำอะไร (กันหน้าจอกระตุก)
                 const currentJSON = JSON.stringify(data);
                 if (currentJSON !== lastStateJSON) {
-                    // ข้อมูลเปลี่ยน! อัปเดตหน้าจอเดี๋ยวนี้
-                    console.log("🔄 พบการเปลี่ยนแปลง! อัปเดตหน้าจอ...");
                     serverState = data;
                     lastStateJSON = currentJSON;
                     applyServerState(); 
                 }
-
-            } catch (err) { 
-                // ถ้าเน็ตหลุดเงียบๆ ไม่ต้องโวยวาย console.error("Update failed", err); 
-            }
+            } catch (err) { }
         }
 
         function applyServerState() {
@@ -224,15 +218,12 @@
                 document.getElementById("maintenanceMessage").style.display = "none";
             }
 
-            renderMenu(); // อัปเดตเมนู (อันไหนหมดจะหายไปเอง)
-            
-            // อัปเดตปุ่มสวิตช์ในหน้า Admin (ถ้าเปิดไว้อยู่)
+            renderMenu(); 
             if(document.getElementById("adminModal").style.display === "flex") {
                  document.getElementById("toggleMaintenance").checked = serverState.isMaintenance;
                  document.getElementById("toggleShop").checked = serverState.isManualClosed;
                  renderAdminMenuList(); 
             }
-            
             checkShopStatusOnLoad(); 
         }
         
@@ -257,9 +248,8 @@
                 });
                 const res = await response.json();
                 if (res.status === 'success') {
-                    // อัปเดตทันทีเพื่อให้คนกดรู้สึกว่าเร็ว (ไม่ต้องรอ 3 วิ)
                     serverState = res.newState;
-                    lastStateJSON = JSON.stringify(serverState); // อัปเดตความจำด้วย
+                    lastStateJSON = JSON.stringify(serverState); 
                     applyServerState();
                 } else {
                     alert("❌ " + res.message);
@@ -271,13 +261,10 @@
         function renderMenu() {
             const menuContainer = document.getElementById("menuList");
             if (!menuContainer) return;
-            
             const soldOutIds = serverState.soldOutItems || [];
-
             menuContainer.innerHTML = menuItems.map(item => {
                 const isSoldOut = soldOutIds.includes(item.id);
-                if (isSoldOut) return ""; // ✅ ซ่อนเมนูที่หมด
-
+                if (isSoldOut) return ""; 
                 return `
                 <div class="menu-item">
                     <div class="menu-info">
@@ -291,11 +278,9 @@
                     </div>
                 </div>
             `}).join('');
-            
             if (menuContainer.innerHTML === "") {
                 menuContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#999; font-size:18px;">❌ วันนี้สินค้าหมดทุกรายการครับ</div>`;
             }
-
             for (let id in cart) {
                 const qtyElement = document.getElementById(`qty-${id}`);
                 if(qtyElement && cart[id] > 0) qtyElement.innerText = cart[id];
@@ -305,8 +290,6 @@
         function renderAdminMenuList() {
             const container = document.getElementById("adminMenuList");
             const soldOutIds = serverState.soldOutItems || [];
-            
-            // ในหน้า Admin ต้องโชว์ครบ เพื่อให้กดเปิดคืนได้
             container.innerHTML = menuItems.map(item => {
                 const isSoldOut = soldOutIds.includes(item.id);
                 return `
@@ -345,7 +328,6 @@
 
         function checkShopStatusOnLoad() {
             if (checkExistingQueue()) return; 
-
             if (serverState.isManualClosed) {
                 document.getElementById("landingButtons").style.display = "none";
                 document.getElementById("shopClosedMessage").style.display = "block";
@@ -354,17 +336,14 @@
                 document.getElementById("lateNightContent").style.display = "none";
                 return;
             }
-
             const now = new Date();
             const hour = now.getHours();
             const minute = now.getMinutes();
-
-            if (false ) { 
+            if (false) { 
                 document.getElementById("landingButtons").style.display = "none"; 
                 document.getElementById("shopClosedMessage").style.display = "block";
                 document.querySelector("#shopClosedMessage h2").innerText = "ร้านยังไม่เปิดรับออเดอร์"; 
                 document.getElementById("closedReason").innerText = "(เปิด 19.00 - 00.00 น.)";
-
                 if (hour === 0 || (hour === 1 && minute <= 30)) {
                     document.getElementById("lateNightContent").style.display = "block";
                 } else {
@@ -421,6 +400,9 @@
             document.getElementById("btnConfirmOrder").style.display = "inline-block"; 
             document.getElementById("btnConfirmOrder").innerText = "✅ ยืนยัน / รับคิว";
             document.getElementById("btnConfirmOrder").disabled = false;
+            
+            // เคลียร์ค่าหมายเหตุเดิม (ถ้ามี)
+            document.getElementById("orderNote").value = "";
 
             const infoSection = document.getElementById("customerInfoSection");
             const dineInMsg = document.getElementById("dineInMessage");
@@ -457,6 +439,8 @@
 
             let phone = document.getElementById("confirmPhone").value;
             const payment = document.getElementById("paymentMethod").value;
+            // ✅ ดึงค่าหมายเหตุ
+            const note = document.getElementById("orderNote").value;
 
             if (currentOrderType.includes("กลับบ้าน")) {
                 if (!phone || phone.length < 9) {
@@ -479,6 +463,7 @@
             btn.disabled = true;
             
             try {
+                // ⚠️ แก้ URL Ngrok ของคุณ
                 const response = await fetch('https://valene-unspitted-wirelessly.ngrok-free.dev/api/order', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
@@ -489,7 +474,8 @@
                         items: itemsText,
                         total: document.getElementById("totalAmount").innerText,
                         type: currentOrderType,
-                        itemIds: itemIds
+                        itemIds: itemIds,
+                        note: note // ✅ ส่งหมายเหตุไป Server
                     })
                 });
 
