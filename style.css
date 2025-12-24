@@ -1,25 +1,25 @@
 /* =========================================
-   🎨 STYLE.CSS - อัปเกรดใหม่ (Prompt Font)
+   🎨 STYLE.CSS - ฉบับสมบูรณ์ (Premium + Admin)
    ========================================= */
 
-/* นำเข้าฟอนต์ Prompt (เผื่อใน HTML ไม่ได้ใส่) */
+/* นำเข้าฟอนต์ Prompt */
 @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap');
 
 body {
-    font-family: 'Prompt', sans-serif; /* ✅ เปลี่ยนฟอนต์ใหม่ */
+    font-family: 'Prompt', sans-serif;
     background-color: #f5f5f5;
     margin: 0;
     padding: 0;
     color: #333;
-    -webkit-tap-highlight-color: transparent; /* ลบสีเทาเวลากดปุ่มในมือถือ */
+    -webkit-tap-highlight-color: transparent;
 }
 
-/* --- 🏠 หน้าแรก (Landing Page) - ปรับลุคพรีเมียม --- */
+/* --- 🏠 หน้าแรก (Landing Page) --- */
 .landing-container {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
-    /* พื้นหลังสีครีม-ขาว ให้ดูน่ากินและสะอาดตา */
+    /* พื้นหลังไล่สีครีม-ขาว สไตล์มินิมอล */
     background: linear-gradient(135deg, #FFEFBA 0%, #FFFFFF 100%);
     display: flex;
     justify-content: center;
@@ -37,13 +37,12 @@ body {
     text-align: center;
     width: 100%;
     max-width: 400px;
-    animation: slideUp 0.8s ease; /* ✅ เพิ่มอนิเมชั่นเด้งขึ้น */
+    animation: slideUp 0.8s ease;
 }
 
-/* ✅ กรอบใส่โลโก้ (เพิ่มใหม่) */
+/* กรอบใส่โลโก้ */
 .shop-logo {
-    width: 100px;
-    height: 100px;
+    width: 100px; height: 100px;
     background-color: #eee;
     border-radius: 50%;
     margin: 0 auto 20px;
@@ -56,37 +55,21 @@ body {
 .welcome-box h1 { margin: 0; color: #333; font-size: 26px; font-weight: 600; }
 .welcome-box p { color: #666; margin-top: 5px; margin-bottom: 25px; }
 
-/* --- 🔘 ปุ่มหน้าแรก --- */
-.landing-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
-    width: 100%;
-}
-
+/* ปุ่มหน้าแรก */
+.landing-buttons { display: flex; flex-direction: column; gap: 15px; width: 100%; }
 .btn-select {
-    border: none;
-    padding: 15px;
-    font-size: 18px;
-    border-radius: 15px;
-    cursor: pointer;
-    font-weight: 600;
+    border: none; padding: 15px; font-size: 18px; border-radius: 15px;
+    cursor: pointer; font-weight: 600; color: white;
     box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    display: flex; align-items: center; justify-content: center; gap: 10px;
     transition: transform 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-    color: white;
+    font-family: 'Prompt', sans-serif;
 }
 .btn-select:active { transform: scale(0.95); }
-
-/* ปุ่มทานที่ร้าน (ไล่สีเขียวสวยๆ) */
 .btn-dine-in { background: linear-gradient(45deg, #06C755, #2ecc71); }
-/* ปุ่มกลับบ้าน (ไล่สีส้มสวยๆ) */
 .btn-takeaway { background: linear-gradient(45deg, #FF9966, #FF5E62); }
 
-/* --- ⛔ กล่องร้านปิด (เพิ่มใหม่ - สำคัญมาก!) --- */
+/* --- ⛔ ป้ายร้านปิด / ปิดปรับปรุง --- */
 .closed-box {
     background-color: #fff0f0;
     border: 2px dashed #ff4d4d;
@@ -112,18 +95,11 @@ body {
     border-radius: 20px; cursor: pointer; color: #555; font-size: 14px;
     font-family: 'Prompt', sans-serif;
 }
-.badge {
-    background: #06C755; color: white; padding: 5px 12px;
-    border-radius: 20px; font-size: 14px; font-weight: bold;
-}
+.badge { background: #06C755; color: white; padding: 5px 12px; border-radius: 20px; font-size: 14px; font-weight: bold; }
 
-.container {
-    max-width: 600px; margin: 0 auto;
-    padding: 20px; padding-bottom: 100px; /* เผื่อที่ให้ปุ่มล่าง */
-}
-
-/* รายการอาหาร */
+.container { max-width: 600px; margin: 0 auto; padding: 20px; padding-bottom: 100px; }
 .menu-grid { display: grid; gap: 15px; }
+
 .menu-item {
     background: white; border-radius: 15px; padding: 15px;
     display: flex; justify-content: space-between; align-items: center;
@@ -148,8 +124,7 @@ body {
     box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
     display: flex; justify-content: space-between; align-items: center;
     border-radius: 20px 20px 0 0;
-    max-width: 600px; margin: 0 auto;
-    z-index: 100;
+    max-width: 600px; margin: 0 auto; z-index: 100;
 }
 .total-price { font-size: 18px; font-weight: bold; }
 .btn-checkout {
@@ -157,15 +132,16 @@ body {
     padding: 12px 25px; border-radius: 30px;
     font-size: 16px; font-weight: bold; cursor: pointer;
     box-shadow: 0 4px 10px rgba(6, 199, 85, 0.3);
+    font-family: 'Prompt', sans-serif;
 }
 .btn-checkout:disabled { background: #ccc; box-shadow: none; }
 
-/* --- 📝 Modal สรุปรายการ --- */
+/* --- 📝 Modal --- */
 .modal {
     display: none; position: fixed; z-index: 1000;
     left: 0; top: 0; width: 100%; height: 100%;
     background-color: rgba(0,0,0,0.5);
-    justify-content: center; align-items: flex-end; /* เด้งจากข้างล่าง */
+    justify-content: center; align-items: flex-end;
 }
 .modal-content {
     background-color: white; width: 100%; max-width: 600px;
@@ -174,37 +150,65 @@ body {
     box-shadow: 0 -5px 25px rgba(0,0,0,0.1);
 }
 .modal-content h2 { margin-top: 0; text-align: center; font-size: 22px; }
-.modal-content label { display: block; margin-top: 15px; font-weight: 600; font-size: 14px; color: #555; }
-
 .summary-list {
     background: #f9f9f9; padding: 15px; border-radius: 10px;
-    margin: 15px 0; max-height: 200px; overflow-y: auto;
-    border: 1px dashed #ddd;
+    margin: 15px 0; max-height: 200px; overflow-y: auto; border: 1px dashed #ddd;
 }
-.summary-item { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px;}
+.summary-item { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
 
-.input-box {
-    width: 100%; padding: 12px; margin: 5px 0 15px;
-    border: 1px solid #ddd; border-radius: 10px; font-size: 16px;
-    font-family: 'Prompt', sans-serif;
-}
-
+.input-box { width: 100%; padding: 12px; margin: 5px 0 15px; border: 1px solid #ddd; border-radius: 10px; font-size: 16px; font-family: 'Prompt', sans-serif; }
 .modal-buttons { display: flex; gap: 10px; margin-top: 20px; }
 .btn-cancel, .btn-confirm {
     flex: 1; padding: 12px; border: none; border-radius: 10px;
-    font-size: 16px; cursor: pointer; font-weight: bold;
-    font-family: 'Prompt', sans-serif;
+    font-size: 16px; cursor: pointer; font-weight: bold; font-family: 'Prompt', sans-serif;
 }
 .btn-cancel { background: #f0f0f0; color: #555; }
 .btn-confirm { background: #06C755; color: white; }
 
-/* ✅ กล่องแจ้งเตือน Error (เพิ่มใหม่) */
 #serverMessage {
-    display: none; text-align: center; color: #d63031;
-    font-weight: bold; margin: 15px 0;
-    background-color: #ffe6e6; padding: 10px;
-    border-radius: 8px; border: 1px solid #fab1a0;
+    display: none; text-align: center; color: #d63031; font-weight: bold; margin: 15px 0;
+    background-color: #ffe6e6; padding: 10px; border-radius: 8px; border: 1px solid #fab1a0;
 }
+
+/* --- ⚙️ ADMIN & STAFF STYLES (ส่วนที่เพิ่มเข้ามา) --- */
+
+/* 1. สไตล์ของหมด (Sold Out) */
+.sold-out { opacity: 0.5; pointer-events: none; position: relative; }
+.sold-out::after {
+    content: "หมด"; position: absolute; top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-15deg);
+    background: red; color: white; padding: 5px 15px;
+    font-size: 20px; font-weight: bold; border-radius: 5px; border: 2px solid white;
+    z-index: 10;
+}
+
+/* 2. ปุ่มลอย Admin (รูปเฟือง) */
+.admin-btn-float {
+    position: fixed; bottom: 20px; right: 20px;
+    background: #333; color: white; width: 50px; height: 50px;
+    border-radius: 50%; display: flex; align-items: center; justify-content: center;
+    font-size: 24px; cursor: pointer; z-index: 2000;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    
+    /* ⚠️ เปลี่ยนเป็น flex เพื่อเทสในคอม, เปลี่ยนเป็น none เมื่อใช้จริง */
+    display: flex; 
+}
+
+/* 3. Dashboard Panel */
+.admin-panel { background: #f9f9f9; padding: 20px; border-radius: 15px 15px 0 0; max-height: 80vh; overflow-y: auto; }
+.control-group { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+.switch-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.stock-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
+
+/* 4. Toggle Switch (สวิตช์ปิดเปิด) */
+.switch { position: relative; display: inline-block; width: 50px; height: 26px; }
+.switch input { opacity: 0; width: 0; height: 0; }
+.slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
+.slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
+input:checked + .slider { background-color: #06C755; }
+input:checked + .slider:before { transform: translateX(24px); }
+/* สวิตช์สีแดง (สำหรับปุ่มอันตราย) */
+input.danger:checked + .slider { background-color: #ff4d4d; }
 
 /* --- ✨ อนิเมชั่น --- */
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }

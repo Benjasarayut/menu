@@ -4,46 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ร้านข้าวมันไก่และโรตี</title>
+    
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
-    <style>
-        /* สไตล์เพิ่มเติมสำหรับของหมด และ Admin Panel */
-        .sold-out { opacity: 0.5; pointer-events: none; position: relative; }
-        .sold-out::after {
-            content: "หมด"; position: absolute; top: 50%; left: 50%;
-            transform: translate(-50%, -50%) rotate(-15deg);
-            background: red; color: white; padding: 5px 15px;
-            font-size: 20px; font-weight: bold; border-radius: 5px; border: 2px solid white;
-        }
-        
-        /* ปุ่ม Admin (ขวาล่าง) */
-        .admin-btn-float {
-            position: fixed; bottom: 20px; right: 20px;
-            background: #333; color: white; width: 50px; height: 50px;
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 24px; cursor: pointer; z-index: 2000; box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            display: none; /* ซ่อนไว้ก่อน */
-        }
-
-        /* Modal Admin */
-        .admin-panel {
-            background: #f9f9f9; padding: 20px; border-radius: 15px 15px 0 0;
-            max-height: 80vh; overflow-y: auto;
-        }
-        .control-group { background: white; padding: 15px; border-radius: 10px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
-        .switch-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
-        .stock-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; }
-        
-        /* Toggle Switch */
-        .switch { position: relative; display: inline-block; width: 50px; height: 26px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #ccc; transition: .4s; border-radius: 34px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 4px; bottom: 4px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #06C755; }
-        input:checked + .slider:before { transform: translateX(24px); }
-        input.danger:checked + .slider { background-color: #ff4d4d; } /* สีแดงสำหรับปิดปรับปรุง */
-    </style>
 </head>
 <body>
 
@@ -133,33 +97,34 @@
     <div id="adminModal" class="modal" style="display: none; align-items: flex-end;">
         <div class="modal-content admin-panel" style="width: 100%; max-width: 100%; border-radius: 20px 20px 0 0;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-                <h2 style="margin:0;">⚙️ จัดการร้าน (Admin/Staff)</h2>
+                <h2 style="margin:0;">⚙️ จัดการร้าน</h2>
                 <button onclick="document.getElementById('adminModal').style.display='none'" style="border:none; background:none; font-size:24px;">✖️</button>
             </div>
 
             <div id="adminZone" class="control-group" style="display:none; border: 2px solid #ff4d4d;">
                 <div class="switch-row">
-                    <span>🚧 <strong>ปิดปรับปรุงระบบ</strong> (ลูกค้าเข้าไม่ได้เลย)</span>
+                    <span>🚧 <strong>ปิดปรับปรุงระบบ</strong></span>
                     <label class="switch">
                         <input type="checkbox" id="toggleMaintenance" class="danger" onchange="updateSystemStatus('toggleMaintenance', this.checked)">
                         <span class="slider"></span>
                     </label>
                 </div>
+                <small style="color:red;">* เฉพาะ Admin (ลูกค้าเข้าไม่ได้เลย)</small>
             </div>
 
             <div class="control-group">
                 <div class="switch-row">
-                    <span>⛔ <strong>ปิดรับออเดอร์ชั่วคราว</strong> (Manual Close)</span>
+                    <span>⛔ <strong>ปิดรับออเดอร์ชั่วคราว</strong></span>
                     <label class="switch">
                         <input type="checkbox" id="toggleShop" onchange="updateSystemStatus('toggleShop', this.checked)">
                         <span class="slider"></span>
                     </label>
                 </div>
-                <small style="color:#666;">* ถ้าเปิดไว้ ลูกค้าจะสั่งไม่ได้ แม้จะอยู่ในเวลาทำการ</small>
+                <small style="color:#666;">* สำหรับปิดร้านก่อนเวลา หรือพักเบรค</small>
             </div>
 
             <div class="control-group">
-                <h3>🍗 จัดการเมนู (ของหมด)</h3>
+                <h3>🍗 เปิด/ปิด เมนูอาหาร</h3>
                 <div id="adminMenuList"></div>
             </div>
         </div>
@@ -167,7 +132,6 @@
 
     <script>
         let currentOrderType = ""; 
-        // ⚠️ เพิ่ม ID ให้เมนูเพื่อใช้อ้างอิง
         const menuItems = [
             { id: 1, name: "ข้าวมันไก่ต้ม", price: 50 },
             { id: 2, name: "ข้าวมันไก่ทอด", price: 50 },
@@ -176,81 +140,110 @@
             { id: 5, name: "ชาไทยเย็น", price: 25 }
         ];
         let cart = {}; 
-        let userProfile = null; // เก็บข้อมูล User
-        let serverState = {};   // เก็บสถานะจาก Server
+        
+        // ⚠️ สร้าง User Profile เริ่มต้นไว้เลย (กันเหนียว)
+        let userProfile = { 
+            userId: 'Uaee9c1eebc0f49f0190de36b4e3d0bdb', // ไอดีคุณเบน
+            displayName: 'Guest' 
+        };
+        
+        let serverState = {};   
 
-        // ✅ 1. โหลดสถานะจาก Server ทันทีที่เปิดเว็บ
+        async function main() {
+            // 1. ถ้าเปิดในคอม (localhost) ให้เป็น Admin ทันที โดยไม่ต้องรอ LIFF
+            const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+            
+            if (isLocalhost) {
+                console.log("💻 ตรวจพบ Localhost -> เปิดโหมด Admin อัตโนมัติ");
+                userProfile.displayName = "Admin Mode (PC)";
+                checkUserRole(); // สั่งโชว์ปุ่มทันที
+            }
+
+            await fetchShopStatus(); 
+            renderMenu(); 
+            
+            try {
+                await liff.init({ liffId: "2008739684-1MCliiMk" }); 
+                if (liff.isLoggedIn()) {
+                    userProfile = await liff.getProfile(); 
+                    document.getElementById("profile").style.display = "block"; 
+                    document.getElementById("pictureUrl").src = userProfile.pictureUrl;
+                    document.getElementById("displayName").innerText = "สวัสดีคุณ " + userProfile.displayName;
+                    
+                    // เช็คสิทธิ์อีกรอบ (เผื่อเป็น User จริงที่ไม่ใช่ Admin)
+                    checkUserRole(); 
+                }
+            } catch (err) { 
+                console.log("LIFF Error:", err);
+                // ถ้า LIFF พัง แต่เปิดในคอม ก็ยังเป็น Admin ต่อไป
+                if(isLocalhost) checkUserRole();
+            }
+        }
+        main();
+
+        function checkUserRole() {
+            if (!userProfile) return;
+            const myId = userProfile.userId;
+
+            const ADMIN_IDS = ['Uaee9c1eebc0f49f0190de36b4e3d0bdb']; 
+            const STAFF_IDS = ['Uxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx']; 
+
+            // ถ้า ID ตรง หรืออยู่ในโหมด Localhost ให้โชว์ปุ่ม
+            const isLocalhost = location.hostname === "localhost" || location.hostname === "127.0.0.1";
+
+            if (ADMIN_IDS.includes(myId) || isLocalhost) {
+                document.getElementById("btnOpenAdmin").style.display = "flex";
+                document.getElementById("adminZone").style.display = "block"; 
+            } else if (STAFF_IDS.includes(myId)) {
+                document.getElementById("btnOpenAdmin").style.display = "flex";
+            }
+        }
+
+        // --- ส่วนที่เหลือเหมือนเดิม ---
         async function fetchShopStatus() {
             try {
-                // เปลี่ยน URL เป็นของ Ngrok คุณ
+                // ✅ ใช้ URL Ngrok (ถ้าใช้ Local ให้แก้เป็น http://localhost:3000/api/status)
                 const response = await fetch('https://valene-unspitted-wirelessly.ngrok-free.dev/api/status', {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
                 const data = await response.json();
                 serverState = data;
-                applyServerState(); // เอาสถานะไปแสดงผล
+                applyServerState(); 
             } catch (err) { console.error("Load status error", err); }
         }
 
         function applyServerState() {
-            // 1. เช็คปิดปรับปรุง (Maintenance)
             if (serverState.isMaintenance) {
-                // ถ้าเป็น Admin จะยังเห็นปุ่ม แต่ลูกค้าทั่วไปจะโดนบล็อก
                 if (!isAdminOrStaff()) {
                     document.getElementById("landingButtons").style.display = "none";
                     document.getElementById("shopClosedMessage").style.display = "none";
                     document.getElementById("maintenanceMessage").style.display = "block";
-                    return; // จบข่าว
-                } else {
-                     // Admin เห็นป้ายเตือน แต่ยังกดได้
-                     // alert("ระบบปิดปรับปรุงอยู่ (แต่คุณเป็น Admin เลยเข้าได้)");
+                    return; 
                 }
             } else {
                 document.getElementById("maintenanceMessage").style.display = "none";
             }
 
-            // 2. อัปเดตเมนู (ของหมด)
-            renderMenu(); // รีเฟรชเมนูเพื่อติดป้าย Sold Out
-
-            // 3. อัปเดตปุ่มในหน้า Admin Panel
+            renderMenu(); 
             document.getElementById("toggleMaintenance").checked = serverState.isMaintenance;
             document.getElementById("toggleShop").checked = serverState.isManualClosed;
-            renderAdminMenuList(); // รีเฟรชรายการใน Admin
-            
-            // 4. รัน Logic เช็คเวลาปกติ (ส่งต่อให้ฟังก์ชันเดิม)
+            renderAdminMenuList(); 
             checkShopStatusOnLoad(); 
-        }
-
-        // เช็คว่า User ปัจจุบันเป็น Admin/Staff ไหม (เพื่อโชว์ปุ่มเกียร์)
-        function checkUserRole() {
-            if (!userProfile) return;
-            const myId = userProfile.userId;
-            
-            // ⚠️ ตรงนี้ต้องเอา ID คุณมาใส่ให้ตรงกับใน Server.js (เพื่อเช็คเบื้องต้นหน้าบ้าน)
-            const ADMIN_IDS = ['Uaee9c1eebc0f49f0190de36b4e3d0bdb']; 
-            const STAFF_IDS = []; // ใส่ ID พนักงานตรงนี้ด้วย
-
-            if (ADMIN_IDS.includes(myId)) {
-                document.getElementById("btnOpenAdmin").style.display = "flex";
-                document.getElementById("adminZone").style.display = "block"; // Admin เห็นปุ่มปิดปรับปรุง
-            } else if (STAFF_IDS.includes(myId)) {
-                document.getElementById("btnOpenAdmin").style.display = "flex";
-            }
         }
         
         function isAdminOrStaff() {
             return document.getElementById("btnOpenAdmin").style.display === "flex";
         }
 
-        // ฟังก์ชันอัปเดตสถานะกลับไปที่ Server
         async function updateSystemStatus(action, value, itemId = null) {
-            if (!userProfile) return alert("กรุณารอโหลดข้อมูล User สักครู่");
+            if (!userProfile) return alert("กรุณารอโหลดสักครู่");
+
             try {
                 const response = await fetch('https://valene-unspitted-wirelessly.ngrok-free.dev/api/update-status', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
                     body: JSON.stringify({
-                        userId: userProfile.userId,
+                        userId: userProfile.userId, 
                         action: action,
                         value: value,
                         itemId: itemId
@@ -259,16 +252,70 @@
                 const res = await response.json();
                 if (res.status === 'success') {
                     serverState = res.newState;
-                    applyServerState(); // อัปเดตหน้าจอทันที
+                    applyServerState();
                 } else {
-                    alert("❌ เกิดข้อผิดพลาด: " + res.message);
-                    // คืนค่าปุ่มกดกลับถ้า error
+                    alert("❌ " + res.message);
                     fetchShopStatus(); 
                 }
-            } catch (err) { alert("Server Error"); }
+            } catch (err) { alert("Server Error: เช็คว่าเปิด node server.js หรือยัง?"); }
         }
 
-        // --- Logic เดิม ---
+        function renderMenu() {
+            const menuContainer = document.getElementById("menuList");
+            if (!menuContainer) return;
+            
+            const soldOutIds = serverState.soldOutItems || [];
+
+            menuContainer.innerHTML = menuItems.map(item => {
+                const isSoldOut = soldOutIds.includes(item.id);
+                if (isSoldOut) return ""; // ✅ ซ่อนเมนูที่หมด
+
+                return `
+                <div class="menu-item">
+                    <div class="menu-info">
+                        <h3>${item.name}</h3>
+                        <div class="price">${item.price} บาท</div>
+                    </div>
+                    <div class="qty-controls">
+                        <button class="btn-qty" onclick="updateQty(${item.id}, -1)">-</button>
+                        <span class="qty-display" id="qty-${item.id}">${cart[item.id] || 0}</span>
+                        <button class="btn-qty" onclick="updateQty(${item.id}, 1)">+</button>
+                    </div>
+                </div>
+            `}).join('');
+            
+            if (menuContainer.innerHTML === "") {
+                menuContainer.innerHTML = `<div style="text-align:center; padding:40px; color:#999; font-size:18px;">❌ วันนี้สินค้าหมดทุกรายการครับ</div>`;
+            }
+
+            for (let id in cart) {
+                const qtyElement = document.getElementById(`qty-${id}`);
+                if(qtyElement && cart[id] > 0) qtyElement.innerText = cart[id];
+            }
+        }
+
+        function renderAdminMenuList() {
+            const container = document.getElementById("adminMenuList");
+            const soldOutIds = serverState.soldOutItems || [];
+            
+            container.innerHTML = menuItems.map(item => {
+                const isSoldOut = soldOutIds.includes(item.id);
+                return `
+                <div class="stock-item">
+                    <span style="${isSoldOut ? 'color:red; text-decoration:line-through;' : ''}">${item.name}</span>
+                    <label class="switch" style="transform: scale(0.8);">
+                        <input type="checkbox" ${isSoldOut ? 'checked' : ''} onchange="updateSystemStatus('toggleStock', this.checked, ${item.id})">
+                        <span class="slider danger"></span>
+                    </label>
+                </div>
+            `}).join('');
+        }
+
+        function openAdminModal() {
+            document.getElementById("adminModal").style.display = "flex";
+            renderAdminMenuList();
+        }
+
         function checkExistingQueue() {
             const savedQueue = localStorage.getItem('myDailyQueue');
             if (savedQueue) {
@@ -295,7 +342,6 @@
         function checkShopStatusOnLoad() {
             if (checkExistingQueue()) return; 
 
-            // ถ้าโดน Staff กดปิดร้าน (Manual Close)
             if (serverState.isManualClosed) {
                 document.getElementById("landingButtons").style.display = "none";
                 document.getElementById("shopClosedMessage").style.display = "block";
@@ -305,16 +351,14 @@
                 return;
             }
 
-            // เช็คเวลาปกติ
             const now = new Date();
             const hour = now.getHours();
             const minute = now.getMinutes();
 
-            // ⚠️ แก้เป็น < 19 เพื่อใช้งานจริง
             if (false) { 
                 document.getElementById("landingButtons").style.display = "none"; 
                 document.getElementById("shopClosedMessage").style.display = "block";
-                document.querySelector("#shopClosedMessage h2").innerText = "ร้านยังไม่เปิดรับออเดอร์"; // คืนค่าข้อความเดิม
+                document.querySelector("#shopClosedMessage h2").innerText = "ร้านยังไม่เปิดรับออเดอร์"; 
                 document.getElementById("closedReason").innerText = "(เปิด 19.00 - 00.00 น.)";
 
                 if (hour === 0 || (hour === 1 && minute <= 30)) {
@@ -328,23 +372,6 @@
                  document.getElementById("shopClosedMessage").style.display = "none";
             }
         }
-
-        async function main() {
-            await fetchShopStatus(); // 1. ดึงสถานะร้านก่อน
-            renderMenu(); 
-            try {
-                await liff.init({ liffId: "2008739684-1MCliiMk" }); 
-                if (liff.isLoggedIn()) {
-                    userProfile = await liff.getProfile(); // เก็บ Profile ไว้ใช้เช็คสิทธิ์
-                    document.getElementById("profile").style.display = "block"; 
-                    document.getElementById("pictureUrl").src = userProfile.pictureUrl;
-                    document.getElementById("displayName").innerText = "สวัสดีคุณ " + userProfile.displayName;
-                    
-                    checkUserRole(); // 2. เช็คว่าเป็น Admin/Staff ไหม?
-                }
-            } catch (err) { console.log("LIFF Init Error:", err); }
-        }
-        main();
 
         function selectType(type) {
             currentOrderType = type;
@@ -365,55 +392,6 @@
             renderMenu();
             calculateTotal();
             checkShopStatusOnLoad(); 
-        }
-
-        function renderMenu() {
-            const menuContainer = document.getElementById("menuList");
-            if (!menuContainer) return;
-            
-            const soldOutIds = serverState.soldOutItems || [];
-
-            menuContainer.innerHTML = menuItems.map(item => {
-                const isSoldOut = soldOutIds.includes(item.id);
-                return `
-                <div class="menu-item ${isSoldOut ? 'sold-out' : ''}">
-                    <div class="menu-info">
-                        <h3>${item.name}</h3>
-                        <div class="price">${item.price} บาท</div>
-                    </div>
-                    <div class="qty-controls">
-                        <button class="btn-qty" onclick="updateQty(${item.id}, -1)" ${isSoldOut ? 'disabled' : ''}>-</button>
-                        <span class="qty-display" id="qty-${item.id}">0</span>
-                        <button class="btn-qty" onclick="updateQty(${item.id}, 1)" ${isSoldOut ? 'disabled' : ''}>+</button>
-                    </div>
-                </div>
-            `}).join('');
-            for (let id in cart) {
-                if(cart[id] > 0) document.getElementById(`qty-${id}`).innerText = cart[id];
-            }
-        }
-
-        // สร้างรายการเมนูในหน้า Admin
-        function renderAdminMenuList() {
-            const container = document.getElementById("adminMenuList");
-            const soldOutIds = serverState.soldOutItems || [];
-            
-            container.innerHTML = menuItems.map(item => {
-                const isSoldOut = soldOutIds.includes(item.id);
-                return `
-                <div class="stock-item">
-                    <span>${item.name}</span>
-                    <label class="switch" style="transform: scale(0.8);">
-                        <input type="checkbox" ${isSoldOut ? 'checked' : ''} onchange="updateSystemStatus('toggleStock', this.checked, ${item.id})">
-                        <span class="slider danger"></span>
-                    </label>
-                </div>
-            `}).join('');
-        }
-
-        function openAdminModal() {
-            document.getElementById("adminModal").style.display = "flex";
-            renderAdminMenuList();
         }
 
         function updateQty(id, change) {
@@ -497,7 +475,6 @@
             btn.disabled = true;
             
             try {
-                // เปลี่ยน URL ให้ตรงกับ Ngrok
                 const response = await fetch('https://valene-unspitted-wirelessly.ngrok-free.dev/api/order', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
