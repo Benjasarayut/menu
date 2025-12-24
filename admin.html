@@ -3,99 +3,177 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Staff Dashboard</title>
+    <title>Staff POS System</title>
     <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Prompt', sans-serif; background: #f4f6f9; padding: 20px; }
-        h1 { text-align: center; color: #333; }
+        :root { --primary: #d32f2f; --bg: #fff5f5; --white: #ffffff; --green: #2e7d32; --gold: #ffc107; }
+        body { font-family: 'Prompt', sans-serif; background-color: var(--bg); margin: 0; height: 100vh; display: flex; flex-direction: column; }
         
-        .grid-dashboard { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; max-width: 1000px; margin: 0 auto; }
+        /* Top Bar แดงทอง */
+        .top-bar { background: linear-gradient(135deg, #b71c1c, #d32f2f); padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; color: white; box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
+        .logo-box h1 { margin: 0; font-size: 20px; font-weight: 600; }
+        .logo-box p { margin: 0; font-size: 12px; color: var(--gold); }
         
-        .table-card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px solid transparent; min-height: 200px; display: flex; flex-direction: column; justify-content: space-between; }
+        /* Layout หลัก แบ่งซ้ายขวา */
+        .dashboard-layout { display: grid; grid-template-columns: 350px 1fr; gap: 20px; padding: 20px; flex-grow: 1; overflow: hidden; }
         
-        /* สถานะ: ว่าง (สีเขียว) */
-        .status-empty { border-color: #28a745; background-color: #f1fcf5; }
-        .status-empty .header { color: #28a745; }
+        /* Panel ซ้าย: รายการโต๊ะ */
+        .panel-tables { background: var(--white); border-radius: 15px; padding: 20px; overflow-y: auto; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .panel-header { font-size: 18px; font-weight: bold; margin-bottom: 15px; border-bottom: 2px solid #eee; padding-bottom: 10px; color: var(--primary); display: flex; justify-content: space-between; }
         
-        /* สถานะ: มีคนนั่ง (สีแดง) */
-        .status-occupied { border-color: #dc3545; background-color: #fff5f5; }
-        .status-occupied .header { color: #dc3545; }
+        .table-list { display: flex; flex-direction: column; gap: 10px; }
+        .table-card { 
+            padding: 15px; border-radius: 10px; border: 1px solid #eee; background: white; cursor: pointer; transition: 0.2s; 
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .table-card:hover { transform: translateX(5px); border-color: var(--primary); }
+        .table-card.active-select { background-color: #ffebee; border-color: var(--primary); }
+        
+        .t-name { font-weight: bold; font-size: 16px; }
+        .t-status { font-size: 12px; padding: 4px 10px; border-radius: 20px; font-weight: bold; }
+        .status-free { background: #e8f5e9; color: var(--green); border: 1px solid #c8e6c9; }
+        .status-busy { background: #ffebee; color: var(--primary); border: 1px solid #ffcdd2; animation: pulse 2s infinite; }
 
-        .header { font-size: 22px; font-weight: bold; display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #eee; padding-bottom: 5px; }
+        /* Panel ขวา: รายละเอียดบิล */
+        .panel-order { background: var(--white); border-radius: 15px; padding: 20px; display: flex; flex-direction: column; box-shadow: 0 5px 15px rgba(0,0,0,0.05); }
+        .order-content { flex-grow: 1; overflow-y: auto; }
         
-        .order-list { flex-grow: 1; font-size: 14px; color: #555; max-height: 150px; overflow-y: auto; }
-        .order-item { display: flex; justify-content: space-between; margin-bottom: 4px; }
+        .empty-state { height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #aaa; }
         
-        .footer { margin-top: 10px; border-top: 1px solid #eee; padding-top: 10px; }
-        .total { font-weight: bold; font-size: 18px; text-align: right; margin-bottom: 10px; }
+        .bill-header { text-align: center; margin-bottom: 20px; border-bottom: 1px dashed #ccc; padding-bottom: 15px; }
+        .bill-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #f9f9f9; }
         
-        .btn-clear { width: 100%; padding: 10px; background: #28a745; color: white; border: none; border-radius: 8px; cursor: pointer; font-size: 16px; font-weight: bold; }
-        .btn-clear:hover { background: #218838; }
-
-        @media (max-width: 768px) { .grid-dashboard { grid-template-columns: repeat(2, 1fr); } }
+        .bill-footer { margin-top: 20px; border-top: 2px solid #eee; padding-top: 15px; }
+        .total-row { display: flex; justify-content: space-between; font-size: 24px; font-weight: bold; color: var(--primary); margin-bottom: 20px; }
+        
+        .btn-pay { width: 100%; background: var(--green); color: white; border: none; padding: 15px; border-radius: 10px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn-pay:hover { background: #1b5e20; }
+        
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0.4); } 70% { box-shadow: 0 0 0 5px rgba(211, 47, 47, 0); } 100% { box-shadow: 0 0 0 0 rgba(211, 47, 47, 0); } }
     </style>
 </head>
 <body>
 
-    <h1>🖥️ ผังโต๊ะ (8 โต๊ะ)</h1>
-    <div id="dashboard" class="grid-dashboard">Loading...</div>
+    <div class="top-bar">
+        <div class="logo-box">
+            <h1>Kopihub System</h1>
+            <p>Management & POS</p>
+        </div>
+        <div>
+            <span style="font-size:14px; opacity:0.8;">Admin Logged In</span>
+        </div>
+    </div>
+
+    <div class="dashboard-layout">
+        <aside class="panel-tables">
+            <div class="panel-header">Table Status <span style="font-size:12px; color:#666;">Live</span></div>
+            <div id="tableList" class="table-list">Loading...</div>
+        </aside>
+
+        <main class="panel-order">
+            <div id="orderDetail" class="empty-state">
+                <div style="font-size:40px;">🍽️</div>
+                <p>เลือกโต๊ะทางซ้ายเพื่อดูรายการ</p>
+            </div>
+        </main>
+    </div>
 
     <script>
-        // ดึงข้อมูลใหม่ทุก 3 วินาที (Real-time)
+        let allTables = {};
+        let selectedTableId = null;
+
         setInterval(fetchData, 3000);
         fetchData();
 
         async function fetchData() {
             try {
                 const res = await fetch('https://menu-tmrx.onrender.com/api/admin/tables');
-                const tables = await res.json();
-                renderDashboard(tables);
-            } catch (err) { console.error("Loading error..."); }
+                allTables = await res.json();
+                renderTableList();
+                if (selectedTableId) renderOrderDetail(selectedTableId); // อัปเดตหน้าขวาถ้าเปิดค้างไว้
+            } catch (err) { console.error("Sync Error"); }
         }
 
-        function renderDashboard(tables) {
-            const container = document.getElementById("dashboard");
+        function renderTableList() {
+            const container = document.getElementById("tableList");
             let html = "";
-
             for (let i = 1; i <= 8; i++) {
-                const data = tables[i];
-                const isEmpty = (data.status === 'empty');
+                const t = allTables[i];
+                const isBusy = (t.status !== 'empty');
+                const activeClass = (selectedTableId == i) ? 'active-select' : '';
                 
-                if (isEmpty) {
-                    html += `
-                    <div class="table-card status-empty">
-                        <div class="header">โต๊ะ ${i} <span>✅ ว่าง</span></div>
-                        <div style="text-align:center; color:#ccc; margin-top:40px;">ยังไม่มีลูกค้า</div>
-                    </div>`;
-                } else {
-                    // สร้างรายการอาหาร
-                    let listHtml = data.items.map(item => 
-                        `<div class="order-item"><span>${item.name} x${item.qty}</span><span>${item.price * item.qty}</span></div>`
-                    ).join('');
-
-                    html += `
-                    <div class="table-card status-occupied">
-                        <div class="header">โต๊ะ ${i} <span>🔴 ไม่ว่าง</span></div>
-                        <div class="order-list">${listHtml}</div>
-                        <div class="footer">
-                            <div class="total">รวม: ${data.total} บาท</div>
-                            <button class="btn-clear" onclick="clearTable(${i})">💰 รับเงินแล้ว</button>
-                        </div>
-                    </div>`;
-                }
+                html += `
+                <div class="table-card ${activeClass}" onclick="selectTable(${i})">
+                    <div>
+                        <div class="t-name">Table ${i.toString().padStart(2, '0')}</div>
+                        <div style="font-size:12px; color:#666;">${isBusy ? t.items.length + ' รายการ' : 'ว่าง'}</div>
+                    </div>
+                    <div class="t-status ${isBusy ? 'status-busy' : 'status-free'}">
+                        ${isBusy ? 'Occupied' : 'Available'}
+                    </div>
+                </div>`;
             }
             container.innerHTML = html;
         }
 
-        async function clearTable(num) {
-            if(!confirm(`เก็บเงินโต๊ะ ${num} เรียบร้อยแล้ว?`)) return;
-            
+        function selectTable(id) {
+            selectedTableId = id;
+            renderTableList(); // เพื่ออัปเดตสีปุ่มที่เลือก
+            renderOrderDetail(id);
+        }
+
+        function renderOrderDetail(id) {
+            const container = document.getElementById("orderDetail");
+            const data = allTables[id];
+
+            if (!data || data.status === 'empty') {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div style="font-size:60px; color:#ddd;">✅</div>
+                        <h2 style="color:#2e7d32;">Table ${id} is Available</h2>
+                        <p>ยังไม่มีรายการสั่งอาหารเข้ามา</p>
+                    </div>`;
+                return;
+            }
+
+            // ถ้ามีรายการอาหาร
+            let itemsHtml = data.items.map(item => `
+                <div class="bill-item">
+                    <span>${item.name} <small style="color:#888;">x${item.qty}</small></span>
+                    <span>${item.price * item.qty}</span>
+                </div>
+            `).join('');
+
+            container.innerHTML = `
+                <div class="order-content">
+                    <div class="bill-header">
+                        <h2 style="margin:0;">Table ${id.toString().padStart(2, '0')}</h2>
+                        <span style="color:var(--primary); font-weight:bold;">Status: Unpaid</span>
+                    </div>
+                    <div style="padding:0 20px;">
+                        <h3 style="margin-bottom:10px;">Current Order</h3>
+                        ${itemsHtml}
+                    </div>
+                </div>
+                <div class="bill-footer">
+                    <div class="total-row">
+                        <span>Total Amount</span>
+                        <span>${data.total} THB</span>
+                    </div>
+                    <button class="btn-pay" onclick="clearTable(${id})">💰 CONFIRM PAYMENT</button>
+                </div>
+            `;
+        }
+
+        async function clearTable(id) {
+            if(!confirm(`ยืนยันการรับเงิน โต๊ะ ${id} ?`)) return;
             await fetch('https://menu-tmrx.onrender.com/api/admin/clear-table', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tableNo: num })
+                method: 'POST', headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ tableNo: id })
             });
-            fetchData(); // รีเฟรชทันที
+            selectedTableId = null; // เคลียร์หน้าจอขวา
+            renderOrderDetail(null); // กลับไปหน้าว่าง
+            fetchData(); // ดึงข้อมูลใหม่ทันที
         }
     </script>
 </body>
