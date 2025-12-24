@@ -141,13 +141,38 @@
 
     <script>
         let currentOrderType = ""; 
+        
+        // ✅ รวมเมนูเก่าและใหม่เข้าด้วยกัน (ตามรูปภาพ)
         const menuItems = [
+            // --- ของเดิม ---
             { id: 1, name: "ข้าวมันไก่ต้ม", price: 50 },
             { id: 2, name: "ข้าวมันไก่ทอด", price: 50 },
             { id: 3, name: "ข้าวมันไก่ผสม", price: 60 },
             { id: 4, name: "โรตีกล้วยหอม", price: 40 },
-            { id: 5, name: "ชาไทยเย็น", price: 25 }
+            { id: 5, name: "ชาไทยเย็น", price: 25 },
+
+            // --- เมนูใหม่ (ตามรูป) ---
+            { id: 6, name: "เล้งแซ่บ (เล็ก)", price: 65 },
+            { id: 7, name: "เล้งแซ่บ (ใหญ่)", price: 100 },
+            { id: 8, name: "ซุปเปอร์ตีนไก่ (เล็ก)", price: 65 },
+            { id: 9, name: "ซุปเปอร์ตีนไก่ (ใหญ่)", price: 100 },
+            { id: 10, name: "เล้งแซ่บ + ตีนไก่", price: 120 },
+            
+            { id: 11, name: "ข้าวหมูแดง", price: 55 },
+            { id: 12, name: "ข้าวหมูกรอบ", price: 55 },
+            { id: 13, name: "ข้าวหมูทอด", price: 50 },
+            { id: 14, name: "ข้าวขาหมู", price: 55 },
+            
+            { id: 15, name: "ข้าวยำไก่เมือง", price: 50 },
+            { id: 16, name: "ข้าวคอหมูย่าง", price: 50 },
+            
+            { id: 17, name: "ลาบหมู", price: 50 },
+            { id: 18, name: "น้ำตกหมู", price: 50 },
+            { id: 19, name: "ยำไก่แซ่บ", price: 50 },
+            { id: 20, name: "คอหมูย่าง (กับแกล้ม)", price: 60 },
+            { id: 21, name: "ข้าวเปล่า", price: 10 }
         ];
+
         let cart = {}; 
         let userProfile = null;
         let serverState = {};   
@@ -155,13 +180,10 @@
 
         async function main() {
             await fetchShopStatus(); 
-            
-            // Auto Update (Real-time)
             setInterval(() => { fetchShopStatus(); }, 3000);
 
             try {
                 await liff.init({ liffId: "2008739684-1MCliiMk" }); 
-                
                 if (liff.isLoggedIn()) {
                     userProfile = await liff.getProfile(); 
                     document.getElementById("profile").style.display = "block"; 
@@ -191,7 +213,6 @@
 
         async function fetchShopStatus() {
             try {
-                // ⚠️ แก้ URL Ngrok ของคุณ
                 const response = await fetch('https://valene-unspitted-wirelessly.ngrok-free.dev/api/status', {
                     headers: { 'ngrok-skip-browser-warning': 'true' }
                 });
@@ -400,8 +421,6 @@
             document.getElementById("btnConfirmOrder").style.display = "inline-block"; 
             document.getElementById("btnConfirmOrder").innerText = "✅ ยืนยัน / รับคิว";
             document.getElementById("btnConfirmOrder").disabled = false;
-            
-            // เคลียร์ค่าหมายเหตุเดิม (ถ้ามี)
             document.getElementById("orderNote").value = "";
 
             const infoSection = document.getElementById("customerInfoSection");
@@ -439,7 +458,6 @@
 
             let phone = document.getElementById("confirmPhone").value;
             const payment = document.getElementById("paymentMethod").value;
-            // ✅ ดึงค่าหมายเหตุ
             const note = document.getElementById("orderNote").value;
 
             if (currentOrderType.includes("กลับบ้าน")) {
@@ -463,7 +481,7 @@
             btn.disabled = true;
             
             try {
-                // ⚠️ แก้ URL Ngrok ของคุณ
+                // แก้ URL Ngrok ของคุณ
                 const response = await fetch('https://valene-unspitted-wirelessly.ngrok-free.dev/api/order', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'ngrok-skip-browser-warning': 'true' },
@@ -475,7 +493,7 @@
                         total: document.getElementById("totalAmount").innerText,
                         type: currentOrderType,
                         itemIds: itemIds,
-                        note: note // ✅ ส่งหมายเหตุไป Server
+                        note: note
                     })
                 });
 
